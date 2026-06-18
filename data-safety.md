@@ -4,8 +4,6 @@ title: Data Safety Declaration
 permalink: /data-safety/
 ---
 
-# Data Safety Declaration — Leave26
-
 **Project:** Leave26
 **Last Updated:** 2026-06-18
 
