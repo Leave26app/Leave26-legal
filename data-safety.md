@@ -1,3 +1,9 @@
+---
+layout: page
+title: Data Safety Declaration
+permalink: /data-safety/
+---
+
 # Data Safety Declaration — Leave26
 
 **Project:** Leave26
