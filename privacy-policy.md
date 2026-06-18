@@ -4,12 +4,6 @@ title: Privacy Policy
 permalink: /privacy-policy/
 ---
 
-# Privacy Policy for Leave26
-
-...
-
-# Privacy Policy for Leave26
-
 **Last Updated:** 2026-06-18
 
 Leave26 is a progress and motivation app for dart players.
