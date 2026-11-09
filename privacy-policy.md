@@ -14,8 +14,10 @@ Leave26 is a progress and motivation app for dart players. This Privacy Policy e
 
 The developer of Leave26 is responsible for the processing of your data:
 
-**[NAME]**
-**[ADDRESS]**, Switzerland
+**Kevin Notter**  
+Franklinstrasse 10  
+9400 Rorschach  
+Switzerland  
 E-mail: **leave26@gmail.com**
 
 ---
