@@ -4,169 +4,130 @@ title: Privacy Policy
 permalink: /privacy-policy/
 ---
 
-**Last Updated:** 2026-08-26
+**Last Updated:** 2026-11-10
 
-Leave26 is a progress and motivation app for dart players.
-
-This Privacy Policy explains how Leave26 currently handles user data.
+Leave26 is a progress and motivation app for dart players. This Privacy Policy explains which personal data Leave26 processes, why, and what rights you have.
 
 ---
 
-## 1. Overview
+## 1. Controller and Contact
 
-The current MVP version of Leave26 is designed as a local-only application.
+The developer of Leave26 is responsible for the processing of your data:
 
-- No user account is required.
-- No registration is required.
-- No personal data is collected by the developer.
-- No personal data is transmitted to external servers.
-- Data stored locally by the application remains on the user's device.
-
----
-
-## 2. Data Collection
-
-The current MVP does not collect personal data from users.
-
-Leave26 does not collect:
-
-- names
-- email addresses
-- phone numbers
-- postal addresses
-- precise location data
-- contacts
-- payment information
-- health information
-- browsing history
-- user identifiers
-
-The current MVP does not use third-party tracking technologies.
+**Kevin Notter**  
+Franklinstrasse 10  
+9400 Rorschach  
+Switzerland  
+E-mail: **leave26@gmail.com**
 
 ---
 
-## 3. Local Device Storage
+## 2. Summary
 
-Leave26 stores application data locally on the user's device.
+- You sign in with your **Google account**. Leave26 does not offer its own passwords.
+- Your dart progress (checkouts, history, 180s, goals, profile) is stored in your **personal cloud account** so it is available on all your devices.
+- Leave26 uses **no advertising, no analytics and no tracking**.
+- Your data is **not sold** and not shared with advertisers or other third parties.
+- You can **delete your account and all data** at any time in the app or by request.
 
-This may include:
+---
+
+## 3. Which Data We Process
+
+### 3.1 Account data (Google Sign-In)
+
+When you sign in with Google, Leave26 receives from Google:
+
+- a unique user ID
+- your e-mail address
+- your name as stored in your Google account
+- the URL of your Google profile picture (stored by the sign-in service, not displayed in the app)
+
+Your first name may be used once as the default display name in your Leave26 profile. You can change it at any time.
+
+### 3.2 App data you create
 
 - completed checkouts
-- checkout history entries
-- checkout routes
-- 180 counter progress
-- goals and milestone progress
-- application settings
+- checkout history entries (checkout number, route, date and time)
+- 180 counter and 180 entries with date and time
+- personal goals
+- profile settings (display name, chosen avatar)
 
-This information is used to provide the application's features and remains on the user's device.
+### 3.3 Technical data
 
----
+When the app communicates with the cloud services, technical data such as the IP address, device and app information and timestamps are processed by our service provider (see section 5) to provide and secure the service.
 
-## 4. Checkout History
-
-Users can manually create checkout history entries.
-
-These entries may contain:
-
-- checkout number
-- checkout route
-- date and time information
-
-This information is used only to display progress and history within the application.
-
-It is not transmitted to the developer or external servers.
+Leave26 additionally keeps a copy of your app data on your device so the app works quickly and offline.
 
 ---
 
-## 5. User-Generated Content
+## 4. Purposes and Legal Basis
 
-Leave26 allows users to enter custom checkout routes and notes related to their dart progress.
+We process your data only to:
 
-This information is stored locally on the user's device.
+- create and manage your account and sign you in
+- store and synchronise your progress across devices
+- provide the app's features (statistics, levels, goals)
+- keep the service secure and working
 
-The current MVP does not provide:
-
-- public profiles
-- community features
-- messaging
-- content sharing
+Legal basis (where the EU/EEA GDPR applies): performance of the contract with you (Art. 6(1)(b) GDPR) and our legitimate interest in a secure, working service (Art. 6(1)(f) GDPR). For users in Switzerland the Swiss Federal Act on Data Protection (FADP) applies.
 
 ---
 
-## 6. Photos and Media
+## 5. Service Providers (Google Firebase)
 
-The current MVP does not support photo uploads, media uploads or image storage.
+Leave26 uses **Google Firebase**, provided by Google Ireland Limited / Google LLC, as a processor:
 
-If future versions introduce photo or media functionality, this Privacy Policy will be updated accordingly.
+- **Firebase Authentication** – sign-in with Google
+- **Cloud Firestore** – storage of your app data; our database is located in **Zurich, Switzerland (europe-west6)**
 
----
+Google may process data in other countries, including the USA. Such transfers are based on appropriate safeguards (e.g. the EU-U.S. and Swiss-U.S. Data Privacy Framework and/or standard contractual clauses). More information: [Firebase privacy and security](https://firebase.google.com/support/privacy).
 
-## 7. Third-Party Services
-
-The current MVP does not use third-party services for:
-
-- analytics
-- advertising
-- cloud storage
-- user authentication
-- user tracking
-
-The current MVP does not use services such as:
-
-- Firebase Analytics
-- Firebase Authentication
-- Google AdMob
-- Google Analytics
-- Mixpanel
-- Amplitude
+Leave26 does **not** use Firebase Analytics, Google Analytics, advertising SDKs or other tracking services.
 
 ---
 
-## 8. Data Sharing
+## 6. Sharing of Data
 
-No user data is shared with third parties.
-
-Leave26 does not sell, rent, share or transfer user data to advertisers, analytics providers or external partners.
+Your data is not sold, rented or shared with third parties for their own purposes. Other users cannot see your data – Leave26 currently has no public profiles or community features.
 
 ---
 
-## 9. Data Deletion
+## 7. Storage Period and Deletion
 
-Because application data is stored locally on the user's device, users can delete their data by:
+Your data is stored for as long as your account exists.
 
-- clearing the application's data through device settings
-- uninstalling the application
+You can delete your account at any time:
 
-Future versions may provide additional in-app options for deleting or resetting data.
+- **In the app:** Profile → Account → *Delete account*
+- **Without the app:** see [Delete your account](/Leave26-legal/delete-account/)
 
----
+When you delete your account, your Leave26 account and all associated app data in the cloud are deleted, and the local copy on the device is removed. Residual copies in the service provider's technical backups are deleted according to Google's retention periods.
 
-## 10. Children's Privacy
-
-Leave26 is intended for dart players of various age groups.
-
-The application does not knowingly collect personal information from children.
+If you only sign out, your data remains in your account and is restored when you sign in again.
 
 ---
 
-## 11. Future Changes
+## 8. Security
 
-Leave26 may introduce additional features in future versions that change how data is processed.
-
-If future versions introduce accounts, cloud synchronization, analytics, advertising or other data-related functionality, this Privacy Policy will be updated before those features are released.
+Data is transmitted encrypted (TLS). Access rules ensure that each signed-in user can only read and change their own data.
 
 ---
 
-## 12. Changes to This Privacy Policy
+## 9. Your Rights
 
-This Privacy Policy may be updated as Leave26 evolves.
+Depending on applicable law you have the right to access, rectification, deletion, restriction of processing, data portability and objection. To exercise your rights, contact **leave26@gmail.com**.
 
-The **Last Updated** date at the top of this page will be changed whenever the policy is updated.
+You also have the right to lodge a complaint with a data protection supervisory authority – in Switzerland the Federal Data Protection and Information Commissioner (FDPIC), in the EU the authority of your country of residence.
 
 ---
 
-## 13. Contact
+## 10. Children
 
-If you have questions regarding this Privacy Policy, please contact:
+Leave26 is not directed at children under 13. A Google account is required to use the app; Google's own age requirements apply.
 
-**leave26@gmail.com**
+---
+
+## 11. Changes
+
+We may update this Privacy Policy when Leave26 changes, for example when new features are added. The date at the top shows the latest version. Significant changes will be announced in the app.

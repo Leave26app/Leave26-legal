@@ -6,65 +6,47 @@ permalink: /data-safety/
 
 # Data Safety Declaration — Leave26
 
-**Last Updated:** 2026-08-26
+**Last Updated:** 2026-11-10
 
-Leave26 is a progress and motivation app for dart players.
-
-This page summarizes the current data handling of the Leave26 MVP.
+This page summarizes how Leave26 handles data. It corresponds to the information in the Google Play *Data safety* section. Details: [Privacy Policy](/Leave26-legal/privacy-policy/).
 
 ---
 
-## Current Data Handling
+## Overview
 
-The current version of Leave26 is designed as a local-only application.
-
-- No user account is required.
-- No personal data is collected by the developer.
-- No data is transmitted to external servers.
-- No data is shared with third parties.
-- No advertising or analytics services are used.
-
-The application may store locally on the user's device:
-
-- checkout progress
-- checkout history
-- checkout routes
-- 180 counter progress
-- goals and milestones
-- application settings
-
-This locally stored information is not accessible to the developer.
-
----
-
-## Google Play Data Safety Summary
-
-Based on the current MVP:
-
-| Category | Current Status |
+| Topic | Leave26 |
 |---|---|
-| Data collected | No |
-| Data shared | No |
+| Account required | Yes – Sign in with Google |
+| Data collected | Yes (see below) |
+| Data shared with third parties | No |
 | Data sold | No |
-| User accounts | No |
-| Cloud synchronization | No |
 | Advertising | No |
-| Analytics | No |
+| Analytics / tracking | No |
+| Encrypted in transit | Yes |
+| Account and data deletion | Yes – in the app and on request |
 
 ---
 
-## Important
+## Data Collected
 
-This declaration reflects the current version of Leave26.
+| Data type (Google Play category) | Collected | Purpose | Optional |
+|---|---|---|---|
+| Personal info → Email address | Yes | Account management | No (required for sign-in) |
+| Personal info → Name | Yes | Account management, app functionality | No (from Google account) |
+| Personal info → User IDs | Yes | Account management | No |
+| App activity → Other user-generated content (checkouts, routes, 180s, goals) | Yes | App functionality | No |
 
-If future versions introduce features such as user accounts, cloud synchronization, analytics, advertising or other services that process user data, this declaration and the Privacy Policy will be updated accordingly.
+All data is processed only to provide Leave26. Google Firebase processes it on our behalf as a service provider; this is not "sharing" in the sense of Google Play.
 
-For detailed information about privacy and locally stored application data, please see the [Privacy Policy](/Leave26-legal/privacy-policy/).
+---
+
+## Deleting Your Data
+
+- In the app: **Profile → Account → Delete account**
+- Without the app: [Delete your account](/Leave26-legal/delete-account/)
 
 ---
 
 ## Contact
-
-If you have questions regarding data handling in Leave26, please contact:
 
 **leave26@gmail.com**
