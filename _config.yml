@@ -5,3 +5,4 @@ theme: minima
 header_pages:
   - privacy-policy.md
   - data-safety.md
+  - delete-account.md

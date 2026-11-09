@@ -6,6 +6,7 @@ Official legal and privacy documents for the Leave26 mobile application.
 
 - [Privacy Policy](https://leave26app.github.io/Leave26-legal/privacy-policy/)
 - [Data Safety Declaration](https://leave26app.github.io/Leave26-legal/data-safety/)
+- [Delete Your Account](https://leave26app.github.io/Leave26-legal/delete-account/)
   
 ## About Leave26
 
