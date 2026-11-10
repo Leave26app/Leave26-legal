@@ -1,0 +1,332 @@
+---
+layout: null
+permalink: /
+---
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leave26 – Checkout-Training für Darts</title>
+<meta name="description" content="Leave26 ist die App für Dartspieler, die ihre Checkouts von 2 bis 170 abhaken, 180er zählen und im Level aufsteigen wollen.">
+<meta name="theme-color" content="#070B1A">
+<meta property="og:title" content="Leave26 – Lass die 26 hinter dir">
+<meta property="og:description" content="Hake alle 162 Checkouts ab, zähle deine 180er und steig vom Rookie zum Big Fish auf.">
+<meta property="og:image" content="https://leave26app.github.io/Leave26-legal/assets/img/icon-192.png">
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="apple-touch-icon" href="assets/img/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=Saira:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#070B1A;
+  --night-soft:#0D1226;
+  --panel:#11182E;
+  --panel-up:#18213D;
+  --line:#252F52;
+  --ink:#FFFFFF;
+  --ink-2:#D6D9E6;
+  --muted:#8B92B2;
+  --cyan:#24D8D2;
+  --cyan-deep:#1A9E9A;
+  --display:"Saira Condensed","Arial Narrow",sans-serif;
+  --body:"Saira",system-ui,sans-serif;
+  --gutter:clamp(16px,4vw,48px);
+  --max:1180px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--night);color:var(--ink-2);font:400 17px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}
+a{color:var(--cyan)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:4px}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gutter)}
+
+/* Kopfzeile */
+.top{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink)}
+.brand img{width:40px;height:40px;border-radius:10px}
+.wordmark{font:800 26px/1 var(--display);letter-spacing:.02em}
+.wordmark b{color:var(--cyan);font-weight:800}
+.lang{display:flex;border:1px solid var(--line);border-radius:999px;padding:3px}
+.lang button{font:600 13px/1 var(--body);color:var(--muted);background:none;border:0;padding:7px 12px;border-radius:999px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--panel-up);color:var(--ink)}
+
+/* Hero */
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(32px,6vw,80px);align-items:center;padding:clamp(28px,6vw,72px) 0 clamp(56px,8vw,104px)}
+.hero h1{font:800 clamp(56px,9vw,116px)/.9 var(--display);color:var(--ink);margin:0 0 28px;letter-spacing:-.01em}
+.hero p.lead{font-size:clamp(18px,2vw,21px);max-width:34ch;margin:0 0 36px;color:var(--ink-2)}
+.cta{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px}
+.btn{display:inline-flex;align-items:center;gap:10px;font:700 18px/1 var(--display);letter-spacing:.03em;text-decoration:none;padding:16px 24px;border-radius:14px;background:var(--cyan);color:var(--night);border:0}
+.btn[aria-disabled="true"]{cursor:default}
+.btn svg{width:20px;height:20px}
+.cta small{color:var(--muted);font-size:14px}
+.cta a.quiet{color:var(--ink-2);font-weight:500;font-size:15px}
+
+.phone{justify-self:center;width:min(300px,78vw);padding:10px;border-radius:44px;background:linear-gradient(160deg,#222c4d,#0b1022);box-shadow:0 0 0 1px var(--line),0 40px 80px -30px rgba(36,216,210,.25)}
+.phone img{border-radius:34px;width:100%;height:auto;aspect-ratio:408/844}
+
+/* Checkout-Board */
+.board{padding:clamp(56px,8vw,104px) 0;border-top:1px solid var(--line)}
+.board-head{display:grid;grid-template-columns:1fr auto;gap:24px 48px;align-items:end;margin-bottom:36px}
+h2{font:800 clamp(38px,5.4vw,64px)/.95 var(--display);color:var(--ink);margin:0 0 16px}
+.board-head p{margin:0;max-width:52ch}
+.readout{min-width:300px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px 24px}
+.readout .num{font:800 64px/1 var(--display);color:var(--ink);font-variant-numeric:tabular-nums}
+.readout .num span{font-size:18px;font-weight:600;color:var(--muted);margin-left:8px;letter-spacing:.02em}
+.darts{display:flex;gap:8px;margin-top:14px;min-height:40px;flex-wrap:wrap}
+.dart{font:700 20px/1 var(--display);letter-spacing:.03em;padding:10px 14px;border-radius:10px;background:var(--panel-up);color:var(--ink);border:1px solid var(--line)}
+.dart.finish{background:var(--cyan);color:var(--night);border-color:var(--cyan)}
+.grid{display:grid;grid-template-columns:repeat(18,1fr);gap:6px}
+.cell{font:700 15px/1 var(--display);font-variant-numeric:tabular-nums;aspect-ratio:1;display:grid;place-items:center;border-radius:9px;border:1px solid var(--line);background:var(--night-soft);color:var(--muted);cursor:pointer;padding:0;transition:background .15s,color .15s,border-color .15s}
+.cell.hf{color:var(--ink-2);background:var(--panel)}
+.cell:hover{border-color:var(--cyan-deep);color:var(--ink)}
+.cell[aria-pressed="true"]{background:var(--cyan);border-color:var(--cyan);color:var(--night)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:18px;font-size:14px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:8px;vertical-align:-1px;border:1px solid var(--line)}
+.legend .l-hf{background:var(--panel)}
+.legend .l-lo{background:var(--night-soft)}
+
+/* Ränge */
+.ranks{padding:clamp(56px,8vw,104px) 0;border-top:1px solid var(--line)}
+.ranks-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(32px,6vw,80px);align-items:center}
+.ranks p{max-width:46ch}
+.ladder{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:280px}
+.ladder li{position:relative;border-radius:10px 10px 4px 4px;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;justify-content:flex-end;padding:10px 6px}
+.ladder li span{font:700 13px/1.1 var(--display);color:var(--ink-2);writing-mode:vertical-rl;transform:rotate(180deg);align-self:center;letter-spacing:.03em}
+.ladder li.top{background:var(--cyan);border-color:var(--cyan)}
+.ladder li.top span{color:var(--night)}
+.xp{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;margin:28px 0 0;font-size:15px}
+.xp dt{font:700 17px/1.4 var(--display);color:var(--cyan);text-align:right;font-variant-numeric:tabular-nums}
+.xp dd{margin:0}
+
+/* Konto */
+.account{padding:clamp(56px,8vw,104px) 0;border-top:1px solid var(--line)}
+.account-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(32px,6vw,80px);align-items:center}
+.facts{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:18px}
+.facts li{padding-left:20px;border-left:2px solid var(--cyan-deep)}
+.facts strong{display:block;color:var(--ink);font-weight:600}
+
+/* Fusszeile */
+footer{border-top:1px solid var(--line);padding:40px 0 56px;font-size:15px;color:var(--muted)}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px 40px}
+.foot nav{display:flex;flex-wrap:wrap;gap:10px 24px}
+.foot a{color:var(--ink-2);text-decoration:none}
+.foot a:hover{color:var(--cyan)}
+
+@media (max-width:900px){
+  .hero,.ranks-grid,.account-grid{grid-template-columns:1fr}
+  .board-head{grid-template-columns:1fr}
+  .readout{min-width:0}
+  .grid{grid-template-columns:repeat(9,1fr)}
+  .account-grid .phone{order:2}
+}
+@media (max-width:420px){
+  .grid{gap:4px}
+  .cell{font-size:13px;border-radius:7px}
+  .ladder{height:220px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="./" aria-label="Leave26">
+      <img src="assets/img/icon-192.png" alt="" width="40" height="40">
+      <span class="wordmark">LEAVE<b>26</b></span>
+    </a>
+    <div class="lang" role="group" aria-label="Sprache / Language">
+      <button type="button" data-lang="de" aria-pressed="true">DE</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1 data-i18n="h1">Lass die 26 hinter dir.</h1>
+        <p class="lead" data-i18n="lead">Leave26 macht dein Darttraining sichtbar: Checkouts abhaken, 180er zählen und vom Rookie zum Big Fish aufsteigen.</p>
+        <div class="cta">
+          <span class="btn" aria-disabled="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 2.3c-.2.2-.3.6-.3 1v17.4c0 .4.1.8.3 1l9.7-9.7L3.6 2.3zm10.8 8.6 2.9-2.9L5.3 1.1c-.3-.2-.7-.2-1 0l10.1 9.8zm0 2.2L4.3 22.9c.3.2.7.2 1 0l12-6.9-2.9-2.9zm4.1-4.1-3 3 3 3 3.3-1.9c.9-.5.9-1.8 0-2.3l-3.3-1.8z"/></svg>
+            <span data-i18n="cta">Bald im Play Store</span>
+          </span>
+          <a class="quiet" href="#board" data-i18n="ctaBoard">Checkout-Wege ansehen</a>
+        </div>
+      </div>
+      <figure class="phone" style="margin:0">
+        <img src="assets/img/home.webp" width="408" height="844" alt="Startseite von Leave26 mit Wochenübersicht, High-Finish-Fortschritt und 180er-Zähler" data-i18n-alt="altHome">
+      </figure>
+    </section>
+
+    <section class="board" id="board" aria-labelledby="board-title">
+      <div class="board-head">
+        <div>
+          <h2 id="board-title" data-i18n="boardTitle">162 Checkouts. Wie viele hast du?</h2>
+          <p data-i18n="boardText">Jede Zahl von 2 bis 170, die sich auschecken lässt. In der App hakst du sie ab, sobald du sie im Spiel geschafft hast. Tipp auf eine Zahl und du siehst den Weg, den Leave26 vorschlägt.</p>
+        </div>
+        <div class="readout" aria-live="polite">
+          <div class="num"><output id="ro-num">170</output><span id="ro-label" data-i18n="maxLabel">Big Fish</span></div>
+          <div class="darts" id="ro-darts"></div>
+        </div>
+      </div>
+      <div class="grid" id="grid" role="group" aria-label="Checkouts 170 bis 2"></div>
+      <div class="legend">
+        <span><i class="l-hf"></i><span data-i18n="legendHf">High Finish (100 bis 170)</span></span>
+        <span><i class="l-lo"></i><span data-i18n="legendLo">Checkout unter 100</span></span>
+      </div>
+    </section>
+
+    <section class="ranks" aria-labelledby="ranks-title">
+      <div class="ranks-grid">
+        <div>
+          <h2 id="ranks-title" data-i18n="ranksTitle">Vom Rookie zum Big Fish.</h2>
+          <p data-i18n="ranksText">Jeder Checkout, jede 180 und jedes erreichte Ziel bringt dir XP. Mit jedem Level wächst dein Rang, und dein Profil zeigt, wie weit du gekommen bist.</p>
+          <dl class="xp">
+            <dt>+10</dt><dd data-i18n="xp1">Checkout erfassen</dd>
+            <dt>+20</dt><dd data-i18n="xp2">Neuen Checkout abhaken</dd>
+            <dt>+25</dt><dd data-i18n="xp3">High Finish (100+)</dd>
+            <dt>+100</dt><dd data-i18n="xp4">Big Fish (170)</dd>
+            <dt>+15</dt><dd data-i18n="xp5">180 werfen</dd>
+            <dt>+50</dt><dd data-i18n="xp6">Eigenes Ziel erreichen</dd>
+          </dl>
+        </div>
+        <ol class="ladder" aria-label="Ränge">
+          <li style="height:22%"><span>Rookie</span></li>
+          <li style="height:34%"><span data-i18n="r2">Kneipen-Ass</span></li>
+          <li style="height:46%"><span data-i18n="r3">Vereinsspieler</span></li>
+          <li style="height:58%"><span data-i18n="r4">Ligaspieler</span></li>
+          <li style="height:70%"><span data-i18n="r5">Bezirksspieler</span></li>
+          <li style="height:84%"><span data-i18n="r6">Profi</span></li>
+          <li class="top" style="height:100%"><span>Big Fish</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="account" aria-labelledby="account-title">
+      <div class="account-grid">
+        <figure class="phone" style="margin:0">
+          <img src="assets/img/profile.webp" width="408" height="844" loading="lazy" alt="Profil in Leave26 mit Avatar, Level 5 und XP-Übersicht" data-i18n-alt="altProfile">
+        </figure>
+        <div>
+          <h2 id="account-title" data-i18n="accTitle">Dein Fortschritt geht nicht verloren.</h2>
+          <p data-i18n="accText">Melde dich mit Google an, und Leave26 sichert deine Checkouts, 180er, Ziele und dein Profil automatisch. Auf einem neuen Handy ist nach der Anmeldung alles wieder da.</p>
+          <ul class="facts">
+            <li><strong data-i18n="f1t">Gespeichert in Zürich</strong><span data-i18n="f1">Deine Daten liegen in Google Cloud Firestore im Rechenzentrum Zürich.</span></li>
+            <li><strong data-i18n="f2t">Keine Werbung, kein Tracking</strong><span data-i18n="f2">Leave26 speichert nur, was die App für deinen Fortschritt braucht.</span></li>
+            <li><strong data-i18n="f3t">Jederzeit löschbar</strong><span data-i18n="f3">Dein Konto und alle Daten löschst du direkt im Profil oder per E-Mail.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="wrap foot">
+    <span>© 2026 Leave26, Kevin Notter, Rorschach</span>
+    <nav aria-label="Rechtliches">
+      <a href="privacy-policy/" data-i18n="nPrivacy">Datenschutz</a>
+      <a href="data-safety/" data-i18n="nSafety">Datensicherheit</a>
+      <a href="delete-account/" data-i18n="nDelete">Konto löschen</a>
+      <a href="mailto:leave26@gmail.com" data-i18n="nContact">Kontakt</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var ROUTES = {"170":"T20 T20 Bull","167":"T20 T19 Bull","164":"T20 T18 Bull","161":"T20 T17 Bull","160":"T20 T20 D20","158":"T20 T20 D19","157":"T20 T19 D20","156":"T20 T20 D18","155":"T20 T19 D19","154":"T20 T18 D20","153":"T20 T19 D18","152":"T20 T20 D16","151":"T20 T17 D20","150":"T20 T18 D18","149":"T20 T19 D16","148":"T20 T20 D14","147":"T20 T17 D18","146":"T20 T18 D16","145":"T20 T15 D20","144":"T20 T20 D12","143":"T20 T17 D16","142":"T20 T14 D20","141":"T20 T19 D12","140":"T20 T20 D10","139":"T20 T13 D20","138":"T20 T18 D12","137":"T20 T19 D10","136":"T20 T20 D8","135":"T20 T17 D12","134":"T20 T14 D16","133":"T20 T19 D8","132":"T20 T16 D12","131":"T20 T13 D16","130":"T20 T20 D5","129":"T19 T16 D12","128":"T18 T14 D16","127":"T20 T17 D8","126":"T19 T19 D6","125":"25 T20 D20","124":"T20 T16 D8","123":"T19 T16 D9","122":"T18 T20 D4","121":"T20 T11 D14","120":"T20 20 D20","119":"T19 T12 D13","118":"T20 18 D20","117":"T20 17 D20","116":"T20 16 D20","115":"T20 15 D20","114":"T20 14 D20","113":"T20 13 D20","112":"T20 12 D20","111":"T20 19 D16","110":"T20 18 D16","109":"T20 17 D16","108":"T20 16 D16","107":"T19 18 D16","106":"T20 10 D18","105":"T20 13 D16","104":"T18 18 D16","103":"T19 6 D20","102":"T20 10 D16","101":"T20 9 D16","100":"T20 D20","99":"T19 10 D16","98":"T20 D19","97":"T19 D20","96":"T20 D18","95":"T19 D19","94":"T18 D20","93":"T19 D18","92":"T20 D16","91":"T17 D20","90":"T20 D15","89":"T19 D16","88":"T20 D14","87":"T17 D18","86":"T18 D16","85":"T15 D20","84":"T20 D12","83":"T17 D16","82":"Bull D16","81":"T19 D12","80":"T20 D10","79":"T19 D11","78":"T18 D12","77":"T19 D10","76":"T20 D8","75":"T17 D12","74":"T14 D16","73":"T19 D8","72":"T16 D12","71":"T13 D16","70":"T18 D8","69":"T19 D6","68":"T20 D4","67":"T17 D8","66":"T10 D18","65":"25 D20","64":"T16 D8","63":"T13 D12","62":"T10 D16","61":"25 D18","60":"20 D20","59":"19 D20","58":"18 D20","57":"17 D20","56":"16 D20","55":"15 D20","54":"14 D20","53":"13 D20","52":"12 D20","51":"19 D16","50":"18 D16","49":"17 D16","48":"16 D16","47":"15 D16","46":"6 D20","45":"13 D16","44":"12 D16","43":"3 D20","42":"10 D16","41":"9 D16","40":"D20","39":"7 D16","38":"D19","37":"5 D16","36":"D18","35":"3 D16","34":"D17","33":"1 D16","32":"D16","31":"15 D8","30":"D15","29":"13 D8","28":"D14","27":"11 D8","26":"D13","25":"9 D8","24":"D12","23":"7 D8","22":"D11","21":"5 D8","20":"D10","19":"3 D8","18":"D9","17":"1 D8","16":"D8","15":"7 D4","14":"D7","13":"5 D4","12":"D6","11":"3 D4","10":"D5","9":"1 D4","8":"D4","7":"3 D2","6":"D3","5":"1 D2","4":"D2","3":"1 D1","2":"D1"};
+
+  var T = {
+    en:{
+      h1:"Leave the 26 behind.",
+      lead:"Leave26 makes your darts practice visible: tick off checkouts, count your 180s and climb from Rookie to Big Fish.",
+      cta:"Coming soon to Google Play", ctaBoard:"Browse checkout routes",
+      boardTitle:"162 checkouts. How many have you hit?",
+      boardText:"Every number from 2 to 170 that can be checked out. In the app you tick each one off once you've hit it in a game. Tap a number to see the route Leave26 suggests.",
+      legendHf:"High finish (100 to 170)", legendLo:"Checkout below 100",
+      ranksTitle:"From Rookie to Big Fish.",
+      ranksText:"Every checkout, every 180 and every goal you reach earns XP. Each level raises your rank, and your profile shows how far you've come.",
+      xp1:"Log a checkout", xp2:"Tick off a new checkout", xp3:"High finish (100+)", xp4:"Big Fish (170)", xp5:"Throw a 180", xp6:"Reach your own goal",
+      r2:"Pub Ace", r3:"Club Player", r4:"League Player", r5:"County Player", r6:"Pro",
+      accTitle:"Your progress stays with you.",
+      accText:"Sign in with Google and Leave26 backs up your checkouts, 180s, goals and profile automatically. On a new phone, everything is back as soon as you sign in.",
+      f1t:"Stored in Zurich", f1:"Your data lives in Google Cloud Firestore in the Zurich data centre.",
+      f2t:"No ads, no tracking", f2:"Leave26 only stores what the app needs for your progress.",
+      f3t:"Delete any time", f3:"Delete your account and all data right in your profile or by email.",
+      nPrivacy:"Privacy", nSafety:"Data safety", nDelete:"Delete account", nContact:"Contact",
+      maxLabel:"Big Fish", bogey:"No checkout", darts:"darts",
+      altHome:"Leave26 home screen with weekly stats, high finish progress and 180 counter",
+      altProfile:"Leave26 profile with avatar, level 5 and XP overview"
+    }
+  };
+  var de = {};
+  document.querySelectorAll("[data-i18n]").forEach(function(el){ de[el.dataset.i18n] = el.textContent; });
+  document.querySelectorAll("[data-i18n-alt]").forEach(function(el){ de[el.dataset.i18nAlt] = el.alt; });
+  de.maxLabel = "Big Fish"; de.bogey = "Kein Checkout"; de.darts = "Darts";
+  T.de = de;
+
+  var lang = "de";
+  function t(k){ return T[lang][k] || T.de[k]; }
+
+  // Board aufbauen: alle Zahlen mit Checkout-Weg, absteigend.
+  var grid = document.getElementById("grid");
+  var nums = Object.keys(ROUTES).map(Number).sort(function(a,b){return b-a;});
+  var cells = {};
+  nums.forEach(function(n){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "cell" + (n >= 100 ? " hf" : "");
+    b.textContent = n;
+    b.setAttribute("aria-pressed","false");
+    b.addEventListener("click", function(){ select(n); });
+    grid.appendChild(b);
+    cells[n] = b;
+  });
+
+  var current = 170;
+  var roNum = document.getElementById("ro-num");
+  var roLabel = document.getElementById("ro-label");
+  var roDarts = document.getElementById("ro-darts");
+
+  function select(n){
+    if (cells[current]) cells[current].setAttribute("aria-pressed","false");
+    current = n;
+    cells[n].setAttribute("aria-pressed","true");
+    roNum.textContent = n;
+    var parts = ROUTES[n].split(" ");
+    roLabel.textContent = n === 170 ? t("maxLabel") : parts.length + " " + t("darts");
+    roDarts.innerHTML = "";
+    parts.forEach(function(p, i){
+      var s = document.createElement("span");
+      s.className = "dart" + (i === parts.length - 1 ? " finish" : "");
+      s.textContent = p;
+      roDarts.appendChild(s);
+    });
+  }
+
+  function setLang(l){
+    lang = l;
+    document.documentElement.lang = l;
+    document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-alt]").forEach(function(el){ el.alt = t(el.dataset.i18nAlt); });
+    document.querySelectorAll(".lang button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.lang === l)); });
+    select(current);
+    try { localStorage.setItem("l26-lang", l); } catch(e){}
+  }
+
+  document.querySelectorAll(".lang button").forEach(function(b){
+    b.addEventListener("click", function(){ setLang(b.dataset.lang); });
+  });
+
+  var saved = null;
+  try { saved = localStorage.getItem("l26-lang"); } catch(e){}
+  var nav = (navigator.language || "de").slice(0,2).toLowerCase();
+  setLang(saved || (nav === "de" ? "de" : "en"));
+})();
+</script>
+</body>
+</html>

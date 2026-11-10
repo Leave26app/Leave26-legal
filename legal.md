@@ -1,10 +1,15 @@
+---
+layout: page
+title: Legal
+permalink: /legal/
+---
 Official legal and privacy documents for the Leave26 mobile application.
 
 ## Documents
 
-- [Privacy Policy](./privacy-policy/)
-- [Data Safety Declaration](./data-safety/)
-- [Delete Your Account](./delete-account/)
+- [Privacy Policy](../privacy-policy/)
+- [Data Safety Declaration](../data-safety/)
+- [Delete Your Account](../delete-account/)
 
 ## About Leave26
 
