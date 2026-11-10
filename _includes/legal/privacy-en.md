@@ -49,13 +49,21 @@ Leave26 additionally keeps a copy of your app data on your device so the app wor
 
 ---
 
+### 3.4 Username and friends (optional)
+
+If you set a **username** (e.g. @keno10), it is stored uniquely. Other signed-in users can check whether a username exists, but only if they know it **exactly**. There is no list of all usernames.
+
+For friends, a **public profile** is created containing: display name, username, profile picture, level, rank, number of 180s, number of high finishes, highest finish and number of completed checkouts. Only players whose friend request you accepted (or who accepted yours) can see this profile. Your history with date and time, your routes and your goals remain private.
+
+For requests we store who requested whom, the status (pending or accepted) and both usernames.
+
 ## 4. Purposes and Legal Basis
 
 We process your data only to:
 
 - create and manage your account and sign you in
 - store and synchronise your progress across devices
-- provide the app's features (statistics, levels, goals)
+- provide the app's features (statistics, levels, goals, friends)
 - keep the service secure and working
 
 Legal basis (where the EU/EEA GDPR applies): performance of the contract with you (Art. 6(1)(b) GDPR) and our legitimate interest in a secure, working service (Art. 6(1)(f) GDPR). For users in Switzerland the Swiss Federal Act on Data Protection (FADP) applies.
@@ -77,7 +85,9 @@ Leave26 does **not** use Firebase Analytics, Google Analytics, advertising SDKs 
 
 ## 6. Sharing of Data
 
-Your data is not sold, rented or shared with third parties for their own purposes. Other users cannot see your data – Leave26 currently has no public profiles or community features.
+Your data is not sold, rented or shared with third parties for their own purposes.
+
+Other users only see what you choose to share: if you set a username and confirm a friendship, that friend can see your public profile (see 3.4). You can remove friends at any time; they then no longer see your profile. You can report inappropriate names or behaviour in the app or by email to **leave26@gmail.com**.
 
 ---
 
@@ -90,7 +100,7 @@ You can delete your account at any time:
 - **In the app:** Profile → Account → *Delete account*
 - **Without the app:** see [Delete your account]({{ '/delete-account/' | relative_url }})
 
-When you delete your account, your Leave26 account and all associated app data in the cloud are deleted, and the local copy on the device is removed. Residual copies in the service provider's technical backups are deleted according to Google's retention periods.
+When you delete your account, your Leave26 account and all associated app data in the cloud are deleted, including your username, public profile and friendships, and the local copy on the device is removed. Residual copies in the service provider's technical backups are deleted according to Google's retention periods.
 
 If you only sign out, your data remains in your account and is restored when you sign in again.
 

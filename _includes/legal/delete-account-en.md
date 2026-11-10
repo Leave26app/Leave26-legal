@@ -17,6 +17,7 @@ We will delete your account within **30 days** and confirm the deletion by e-mai
 ## What is deleted
 
 - your Leave26 account (sign-in with Google)
-- all app data: checkouts, history, routes, 180s, goals, profile name and avatar
+- all app data: checkouts, history, routes, 180s, goals, profile name and picture
+- username, public profile and all friendships
 
 Residual copies in technical backups of our service provider (Google Firebase) are deleted according to its retention periods. Your Google account itself is **not** affected.
