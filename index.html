@@ -51,6 +51,11 @@ a{color:var(--cyan)}
 .brand img{width:40px;height:40px;border-radius:10px}
 .wordmark{font:800 26px/1 var(--display);letter-spacing:.02em}
 .wordmark b{font-weight:800;background:var(--brand);-webkit-background-clip:text;background-clip:text;color:transparent}
+.top{gap:16px 28px;flex-wrap:wrap}
+.topnav{display:flex;flex-wrap:wrap;gap:6px 24px;margin-left:auto;font-size:15px}
+.topnav a{color:var(--ink-2);text-decoration:none}
+.topnav a:hover{color:var(--cyan)}
+@media (max-width:700px){.topnav{order:3;width:100%;margin-left:0;font-size:14px;gap:6px 18px}}
 .lang{display:flex;border:1px solid var(--line);border-radius:999px;padding:3px}
 .lang button{font:600 13px/1 var(--body);color:var(--muted);background:none;border:0;padding:7px 12px;border-radius:999px;cursor:pointer}
 .lang button[aria-pressed="true"]{background:var(--panel-up);color:var(--ink)}
@@ -133,6 +138,11 @@ footer{border-top:1px solid var(--line);padding:40px 0 56px;font-size:15px;color
       <img src="assets/img/icon-192.png" alt="" width="40" height="40">
       <span class="wordmark">LEAVE<b>26</b></span>
     </a>
+    <nav class="topnav" aria-label="Rechtliches">
+      <a href="privacy-policy/" data-i18n="nPrivacy">Datenschutz</a>
+      <a href="data-safety/" data-i18n="nSafety">Datensicherheit</a>
+      <a href="delete-account/" data-i18n="nDelete">Konto löschen</a>
+    </nav>
     <div class="lang" role="group" aria-label="Sprache / Language">
       <button type="button" data-lang="de" aria-pressed="true">DE</button>
       <button type="button" data-lang="en" aria-pressed="false">EN</button>

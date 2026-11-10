@@ -4,8 +4,6 @@ title: Delete Your Account
 permalink: /delete-account/
 ---
 
-# Delete Your Leave26 Account
-
 You can delete your Leave26 account and all associated data at any time.
 
 ## Option 1: In the app

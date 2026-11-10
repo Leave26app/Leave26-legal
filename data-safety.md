@@ -4,8 +4,6 @@ title: Data Safety Declaration
 permalink: /data-safety/
 ---
 
-# Data Safety Declaration — Leave26
-
 **Last Updated:** 2026-11-10
 
 This page summarizes how Leave26 handles data. It corresponds to the information in the Google Play *Data safety* section. Details: [Privacy Policy](/Leave26-legal/privacy-policy/).
