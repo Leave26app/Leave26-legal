@@ -1,0 +1,66 @@
+---
+---
+
+@import "minima";
+
+// Leave26-Look für die Rechtstexte: dunkel, ein Türkis-Akzent.
+@import url("https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@700;800&family=Saira:wght@400;600&display=swap");
+
+$l26-night: #070B1A;
+$l26-panel: #11182E;
+$l26-line: #252F52;
+$l26-ink: #FFFFFF;
+$l26-ink-2: #D6D9E6;
+$l26-muted: #8B92B2;
+$l26-cyan: #24D8D2;
+
+body {
+  background: $l26-night;
+  color: $l26-ink-2;
+  font-family: "Saira", system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+h1, h2, h3, h4, .post-title, .page-heading {
+  font-family: "Saira Condensed", "Arial Narrow", sans-serif;
+  color: $l26-ink;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.post-title { font-size: 48px; line-height: 1; }
+h2 { font-size: 32px; margin-top: 40px; }
+h3 { font-size: 24px; }
+
+a, a:visited { color: $l26-cyan; }
+a:hover { color: $l26-ink; }
+strong { color: $l26-ink; }
+
+.site-header {
+  background: $l26-night;
+  border-top: 0;
+  border-bottom: 1px solid $l26-line;
+}
+.site-title, .site-title:visited {
+  font-family: "Saira Condensed", sans-serif;
+  font-weight: 800;
+  color: $l26-ink;
+  letter-spacing: .02em;
+}
+.site-nav .page-link { color: $l26-ink-2; }
+.site-nav .page-link:hover { color: $l26-cyan; }
+@media screen and (max-width: 600px) {
+  .site-nav { background: $l26-panel; border-color: $l26-line; }
+  .site-nav .menu-icon > svg path { fill: $l26-ink-2; }
+}
+
+.site-footer { border-top: 1px solid $l26-line; color: $l26-muted; }
+.footer-heading { color: $l26-ink; }
+
+table { color: $l26-ink-2; border: 1px solid $l26-line; }
+table th { background: $l26-panel; border: 1px solid $l26-line; }
+table td { border: 1px solid $l26-line; }
+table tr:nth-child(even) { background: lighten($l26-night, 3%); }
+blockquote { color: $l26-muted; border-left-color: $l26-cyan; }
+hr { border-color: $l26-line; }
+code, pre { background: $l26-panel; border-color: $l26-line; color: $l26-ink-2; }
