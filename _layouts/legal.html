@@ -1,0 +1,17 @@
+---
+layout: default
+---
+<div class="wrap">
+  <article class="legal" data-lang-block="de" lang="de">
+    <h1>{{ page.title_de }}</h1>
+    {% if page.updated %}<p class="updated">Zuletzt aktualisiert: {{ page.updated | date: "%d.%m.%Y" }}</p>{% endif %}
+    {%- capture de_text -%}{% include legal/{{ page.doc }}-de.md %}{%- endcapture -%}
+    {{ de_text | markdownify }}
+  </article>
+  <article class="legal" data-lang-block="en" lang="en">
+    <h1>{{ page.title }}</h1>
+    {% if page.updated %}<p class="updated">Last updated: {{ page.updated | date: "%B %-d, %Y" }}</p>{% endif %}
+    {%- capture en_text -%}{% include legal/{{ page.doc }}-en.md %}{%- endcapture -%}
+    {{ en_text | markdownify }}
+  </article>
+</div>

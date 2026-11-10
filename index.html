@@ -1,65 +1,11 @@
 ---
-layout: null
+layout: default
+title: Leave26 – Checkout practice for darts
+title_de: Leave26 – Checkout-Training für Darts
+full_title: true
 permalink: /
 ---
-<!doctype html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leave26 – Checkout-Training für Darts</title>
-<meta name="description" content="Leave26 ist die App für Dartspieler, die ihre Checkouts von 2 bis 170 abhaken, 180er zählen und im Level aufsteigen wollen.">
-<meta name="theme-color" content="#070B1A">
-<meta property="og:title" content="Leave26 – Lass die 26 hinter dir">
-<meta property="og:description" content="Hake alle 162 Checkouts ab, zähle deine 180er und steig vom Rookie zum Big Fish auf.">
-<meta property="og:image" content="https://leave26app.github.io/Leave26-legal/assets/img/icon-192.png">
-<link rel="icon" type="image/png" href="assets/img/favicon.png">
-<link rel="apple-touch-icon" href="assets/img/icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=Saira:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{
-  --night:#070B1A;
-  --night-soft:#0D1226;
-  --panel:#11182E;
-  --panel-up:#18213D;
-  --line:#252F52;
-  --ink:#FFFFFF;
-  --ink-2:#D6D9E6;
-  --muted:#8B92B2;
-  --cyan:#00D9F5;
-  --cyan-deep:#1E8FD6;
-  --brand:linear-gradient(90deg,#00E0FC 0%,#4C77FC 55%,#8C1AFF 100%);
-  --display:"Saira Condensed","Arial Narrow",sans-serif;
-  --body:"Saira",system-ui,sans-serif;
-  --gutter:clamp(16px,4vw,48px);
-  --max:1180px;
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-body{margin:0;background:var(--night);color:var(--ink-2);font:400 17px/1.6 var(--body);-webkit-font-smoothing:antialiased}
-img{display:block;max-width:100%}
-a{color:var(--cyan)}
-:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:4px}
-.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gutter)}
-
-/* Kopfzeile */
-.top{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
-.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink)}
-.brand img{width:40px;height:40px;border-radius:10px}
-.wordmark{font:800 26px/1 var(--display);letter-spacing:.02em}
-.wordmark b{font-weight:800;background:var(--brand);-webkit-background-clip:text;background-clip:text;color:transparent}
-.top{gap:16px 28px;flex-wrap:wrap}
-.topnav{display:flex;flex-wrap:wrap;gap:6px 24px;margin-left:auto;font-size:15px}
-.topnav a{color:var(--ink-2);text-decoration:none}
-.topnav a:hover{color:var(--cyan)}
-@media (max-width:700px){.topnav{order:3;width:100%;margin-left:0;font-size:14px;gap:6px 18px}}
-.lang{display:flex;border:1px solid var(--line);border-radius:999px;padding:3px}
-.lang button{font:600 13px/1 var(--body);color:var(--muted);background:none;border:0;padding:7px 12px;border-radius:999px;cursor:pointer}
-.lang button[aria-pressed="true"]{background:var(--panel-up);color:var(--ink)}
-
 /* Hero */
 .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(32px,6vw,80px);align-items:center;padding:clamp(28px,6vw,72px) 0 clamp(56px,8vw,104px)}
 .hero h1{font:800 clamp(56px,9vw,116px)/.9 var(--display);color:var(--ink);margin:0 0 28px;letter-spacing:-.01em}
@@ -110,13 +56,6 @@ h2{font:800 clamp(38px,5.4vw,64px)/.95 var(--display);color:var(--ink);margin:0 
 .facts li{padding-left:20px;border-left:2px solid var(--cyan-deep)}
 .facts strong{display:block;color:var(--ink);font-weight:600}
 
-/* Fusszeile */
-footer{border-top:1px solid var(--line);padding:40px 0 56px;font-size:15px;color:var(--muted)}
-.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px 40px}
-.foot nav{display:flex;flex-wrap:wrap;gap:10px 24px}
-.foot a{color:var(--ink-2);text-decoration:none}
-.foot a:hover{color:var(--cyan)}
-
 @media (max-width:900px){
   .hero,.ranks-grid,.account-grid{grid-template-columns:1fr}
   .board-head{grid-template-columns:1fr}
@@ -130,26 +69,8 @@ footer{border-top:1px solid var(--line);padding:40px 0 56px;font-size:15px;color
   .ladder{height:220px}
 }
 </style>
-</head>
-<body>
-<div class="wrap">
-  <header class="top">
-    <a class="brand" href="./" aria-label="Leave26">
-      <img src="assets/img/icon-192.png" alt="" width="40" height="40">
-      <span class="wordmark">LEAVE<b>26</b></span>
-    </a>
-    <nav class="topnav" aria-label="Rechtliches">
-      <a href="privacy-policy/" data-i18n="nPrivacy">Datenschutz</a>
-      <a href="data-safety/" data-i18n="nSafety">Datensicherheit</a>
-      <a href="delete-account/" data-i18n="nDelete">Konto löschen</a>
-    </nav>
-    <div class="lang" role="group" aria-label="Sprache / Language">
-      <button type="button" data-lang="de" aria-pressed="true">DE</button>
-      <button type="button" data-lang="en" aria-pressed="false">EN</button>
-    </div>
-  </header>
 
-  <main>
+<div class="wrap">
     <section class="hero">
       <div>
         <h1 data-i18n="h1">Lass die 26 hinter dir.</h1>
@@ -163,7 +84,7 @@ footer{border-top:1px solid var(--line);padding:40px 0 56px;font-size:15px;color
         </div>
       </div>
       <figure class="phone" style="margin:0">
-        <img src="assets/img/home.webp" width="408" height="844" alt="Startseite von Leave26 mit Wochenübersicht, High-Finish-Fortschritt und 180er-Zähler" data-i18n-alt="altHome">
+        <img src="{{ '/assets/img/home.webp' | relative_url }}" width="408" height="844" alt="Startseite von Leave26 mit Wochenübersicht, High-Finish-Fortschritt und 180er-Zähler" data-i18n-alt="altHome">
       </figure>
     </section>
 
@@ -210,7 +131,7 @@ footer{border-top:1px solid var(--line);padding:40px 0 56px;font-size:15px;color
     <section class="account" aria-labelledby="account-title">
       <div class="account-grid">
         <figure class="phone" style="margin:0">
-          <img src="assets/img/profile.webp" width="408" height="844" loading="lazy" alt="Profil in Leave26 mit Avatar, Level 5 und XP-Übersicht" data-i18n-alt="altProfile">
+          <img src="{{ '/assets/img/profile.webp' | relative_url }}" width="408" height="844" loading="lazy" alt="Profil in Leave26 mit Avatar, Level 5 und XP-Übersicht" data-i18n-alt="altProfile">
         </figure>
         <div>
           <h2 id="account-title" data-i18n="accTitle">Dein Fortschritt geht nicht verloren.</h2>
@@ -222,20 +143,7 @@ footer{border-top:1px solid var(--line);padding:40px 0 56px;font-size:15px;color
         </div>
       </div>
     </section>
-  </main>
 </div>
-
-<footer>
-  <div class="wrap foot">
-    <span>© 2026 Leave26</span>
-    <nav aria-label="Rechtliches">
-      <a href="privacy-policy/" data-i18n="nPrivacy">Datenschutz</a>
-      <a href="data-safety/" data-i18n="nSafety">Datensicherheit</a>
-      <a href="delete-account/" data-i18n="nDelete">Konto löschen</a>
-      <a href="mailto:leave26@gmail.com" data-i18n="nContact">Kontakt</a>
-    </nav>
-  </div>
-</footer>
 
 <script>
 (function(){
@@ -256,7 +164,6 @@ footer{border-top:1px solid var(--line);padding:40px 0 56px;font-size:15px;color
       accText:"Sign in with Google and Leave26 backs up your checkouts, 180s, goals and profile automatically. On a new phone, everything is back as soon as you sign in.",
       f2t:"No ads, no tracking", f2:"Leave26 only stores what the app needs for your progress.",
       f3t:"Delete any time", f3:"Delete your account and all data right in your profile or by email.",
-      nPrivacy:"Privacy", nSafety:"Data safety", nDelete:"Delete account", nContact:"Contact",
       maxLabel:"Big Fish", bogey:"No checkout", darts:"darts",
       altHome:"Leave26 home screen with weekly stats, high finish progress and 180 counter",
       altProfile:"Leave26 profile with avatar, level 5 and XP overview"
@@ -307,25 +214,13 @@ footer{border-top:1px solid var(--line);padding:40px 0 56px;font-size:15px;color
     });
   }
 
-  function setLang(l){
+  function apply(l){
     lang = l;
-    document.documentElement.lang = l;
     document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent = t(el.dataset.i18n); });
     document.querySelectorAll("[data-i18n-alt]").forEach(function(el){ el.alt = t(el.dataset.i18nAlt); });
-    document.querySelectorAll(".lang button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.lang === l)); });
     select(current);
-    try { localStorage.setItem("l26-lang", l); } catch(e){}
   }
-
-  document.querySelectorAll(".lang button").forEach(function(b){
-    b.addEventListener("click", function(){ setLang(b.dataset.lang); });
-  });
-
-  var saved = null;
-  try { saved = localStorage.getItem("l26-lang"); } catch(e){}
-  var nav = (navigator.language || "de").slice(0,2).toLowerCase();
-  setLang(saved || (nav === "de" ? "de" : "en"));
+  select(current);
+  document.addEventListener("l26:lang", function(e){ apply(e.detail); });
 })();
 </script>
-</body>
-</html>

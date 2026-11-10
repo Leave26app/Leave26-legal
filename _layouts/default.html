@@ -1,0 +1,54 @@
+<!doctype html>
+{%- assign title_de = page.title_de | default: page.title -%}
+{%- assign title_en = page.title -%}
+{%- unless page.full_title -%}{%- assign title_de = title_de | append: " – Leave26" -%}{%- assign title_en = title_en | append: " – Leave26" -%}{%- endunless -%}
+<html lang="de" data-title-de="{{ title_de }}" data-title-en="{{ title_en }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){var l=null;try{l=localStorage.getItem("l26-lang")}catch(e){}if(l!=="de"&&l!=="en"){l=(navigator.language||"de").slice(0,2).toLowerCase()==="de"?"de":"en"}document.documentElement.lang=l;})();</script>
+<title>{{ title_de }}</title>
+<meta name="description" content="{{ page.description | default: site.description }}">
+<meta name="theme-color" content="#070B1A">
+<meta property="og:title" content="{{ title_en }}">
+<meta property="og:description" content="{{ page.description | default: site.description }}">
+<meta property="og:image" content="{{ '/assets/img/icon-192.png' | absolute_url }}">
+<link rel="icon" type="image/png" href="{{ '/assets/img/favicon.png' | relative_url }}">
+<link rel="apple-touch-icon" href="{{ '/assets/img/icon-192.png' | relative_url }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=Saira:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ '/assets/site.css' | relative_url }}">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap site-top">
+    <a class="brand" href="{{ '/' | relative_url }}" aria-label="Leave26 Home">
+      <img src="{{ '/assets/img/icon-192.png' | relative_url }}" alt="" width="40" height="40">
+      <span class="wordmark">LEAVE<b>26</b></span>
+    </a>
+    <nav class="tabs" aria-label="Navigation">
+      {%- for item in site.data.nav %}
+      <a href="{{ item.url | relative_url }}"{% if page.url == item.url %} aria-current="page"{% endif %} data-de="{{ item.de }}" data-en="{{ item.en }}">{{ item.de }}</a>
+      {%- endfor %}
+    </nav>
+    <div class="lang" role="group" aria-label="Sprache / Language">
+      <button type="button" data-lang="de" aria-pressed="true">DE</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</header>
+
+<main>
+{{ content }}
+</main>
+
+<footer class="site-footer">
+  <div class="wrap foot">
+    <span>© 2026 Leave26</span>
+    <a href="mailto:leave26@gmail.com" data-de="Kontakt: leave26@gmail.com" data-en="Contact: leave26@gmail.com">Kontakt: leave26@gmail.com</a>
+  </div>
+</footer>
+<script src="{{ '/assets/site.js' | relative_url }}"></script>
+</body>
+</html>

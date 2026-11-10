@@ -1,8 +1,7 @@
 title: Leave26
-description: Checkout-Training für Darts. Legal and privacy documents for the Leave26 app.
-theme: minima
-
-header_pages:
-  - privacy-policy.md
-  - data-safety.md
-  - delete-account.md
+description: Leave26 ist die App für Dartspieler, die ihre Checkouts von 2 bis 170 abhaken, 180er zählen und im Level aufsteigen wollen.
+url: https://leave26app.github.io
+baseurl: /Leave26-legal
+markdown: kramdown
+exclude:
+  - README.md

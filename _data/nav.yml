@@ -1,0 +1,12 @@
+- url: /
+  de: Home
+  en: Home
+- url: /privacy-policy/
+  de: Datenschutz
+  en: Privacy Policy
+- url: /data-safety/
+  de: Datensicherheit
+  en: Data Safety
+- url: /delete-account/
+  de: Konto löschen
+  en: Delete Account
