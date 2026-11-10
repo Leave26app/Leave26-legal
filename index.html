@@ -30,11 +30,12 @@ h2{font:800 clamp(38px,5.4vw,64px)/.95 var(--display);color:var(--ink);margin:0 
 .readout .num span{font-size:18px;font-weight:600;color:var(--muted);margin-left:8px;letter-spacing:.02em}
 .darts{display:flex;gap:8px;margin-top:14px;min-height:40px;flex-wrap:wrap}
 .dart{font:700 20px/1 var(--display);letter-spacing:.03em;padding:10px 14px;border-radius:10px;background:var(--panel-up);color:var(--ink);border:1px solid var(--line)}
-.dart.finish{background:var(--cyan);color:var(--night);border-color:var(--cyan)}
+.dart.finish{background:var(--brand);color:#fff;border-color:transparent}
 .grid{display:grid;grid-template-columns:repeat(18,1fr);gap:6px}
 .cell{font:700 15px/1 var(--display);font-variant-numeric:tabular-nums;aspect-ratio:1;display:grid;place-items:center;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink-2);cursor:pointer;padding:0;transition:background .15s,color .15s,border-color .15s}
-.cell:hover{border-color:var(--cyan-deep);color:var(--ink)}
-.cell[aria-pressed="true"]{background:var(--cyan);border-color:var(--cyan);color:var(--night)}
+.cell:hover{border-color:var(--c,var(--cyan));color:var(--ink)}
+.cell.seen{background:color-mix(in srgb,var(--c) 22%,var(--panel));border-color:color-mix(in srgb,var(--c) 45%,var(--line));color:var(--ink)}
+.cell[aria-pressed="true"]{background:var(--c,var(--cyan));border-color:transparent;color:var(--ct,#fff)}
 
 /* Ränge */
 .ranks{padding:clamp(56px,8vw,104px) 0;border-top:1px solid var(--line)}
@@ -193,13 +194,31 @@ h2{font:800 clamp(38px,5.4vw,64px)/.95 var(--display);color:var(--ink);margin:0 
     cells[n] = b;
   });
 
+  // Jede Spalte bekommt ihre Farbe aus dem Logo-Verlauf (Cyan → Blau → Violett).
+  var STOPS = [[0,224,252],[76,119,252],[140,26,255]];
+  function brandAt(t){
+    var k = t < .5 ? 0 : 1, u = t < .5 ? t * 2 : (t - .5) * 2, a = STOPS[k], z = STOPS[k + 1];
+    return "rgb(" + a.map(function(v, i){ return Math.round(v + (z[i] - v) * u); }).join(",") + ")";
+  }
+  function paint(){
+    var cols = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
+    nums.forEach(function(n, i){
+      var t = (i % cols) / (cols - 1);
+      cells[n].style.setProperty("--c", brandAt(t));
+      // Auf dem hellen Cyan ist dunkle Schrift besser lesbar.
+      cells[n].style.setProperty("--ct", t < .35 ? "#070B1A" : "#FFFFFF");
+    });
+  }
+  paint();
+  window.addEventListener("resize", paint);
+
   var current = 170;
   var roNum = document.getElementById("ro-num");
   var roLabel = document.getElementById("ro-label");
   var roDarts = document.getElementById("ro-darts");
 
   function select(n){
-    if (cells[current]) cells[current].setAttribute("aria-pressed","false");
+    if (cells[current]) { cells[current].setAttribute("aria-pressed","false"); cells[current].classList.add("seen"); }
     current = n;
     cells[n].setAttribute("aria-pressed","true");
     roNum.textContent = n;
