@@ -12,7 +12,7 @@ $l26-line: #252F52;
 $l26-ink: #FFFFFF;
 $l26-ink-2: #D6D9E6;
 $l26-muted: #8B92B2;
-$l26-cyan: #24D8D2;
+$l26-cyan: #00D9F5;
 
 body {
   background: $l26-night;
@@ -46,6 +46,10 @@ strong { color: $l26-ink; }
   font-weight: 800;
   color: $l26-ink;
   letter-spacing: .02em;
+  background: linear-gradient(90deg, #FFFFFF 0%, #FFFFFF 62%, #00E0FC 70%, #4C77FC 85%, #8C1AFF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .site-nav .page-link { color: $l26-ink-2; }
 .site-nav .page-link:hover { color: $l26-cyan; }
