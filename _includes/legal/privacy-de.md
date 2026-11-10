@@ -41,13 +41,21 @@ Wenn die App mit den Cloud-Diensten kommuniziert, bearbeitet unser Dienstleister
 
 Zusätzlich speichert Leave26 eine Kopie deiner App-Daten auf deinem Gerät, damit die App schnell und auch offline funktioniert.
 
+### 3.4 Benutzername und Freunde (freiwillig)
+
+Wenn du einen **Benutzernamen** festlegst (z. B. @keno10), wird er eindeutig gespeichert. Andere angemeldete Nutzer können prüfen, ob es einen Benutzernamen gibt, aber nur, wenn sie ihn **genau kennen**. Eine Liste aller Namen gibt es nicht.
+
+Für Freunde wird ein **öffentliches Profil** angelegt mit: Anzeigename, Benutzername, Profilbild, Level, Rang, Anzahl 180er, Anzahl High Finishes, höchstes Finish und Anzahl geschaffter Checkouts. Dieses Profil sehen **nur Spieler, deren Freundschaftsanfrage du angenommen hast** (bzw. die deine angenommen haben). Dein Verlauf mit Datum und Uhrzeit, deine Wege und deine Ziele bleiben privat.
+
+Für Anfragen speichern wir, wer wen angefragt hat, den Status (offen oder angenommen) und die Benutzernamen beider Seiten.
+
 ## 4. Zwecke und Rechtsgrundlage
 
 Wir bearbeiten deine Daten nur, um:
 
 - dein Konto zu erstellen, zu verwalten und dich anzumelden
 - deinen Fortschritt zu speichern und zwischen Geräten zu synchronisieren
-- die Funktionen der App bereitzustellen (Statistiken, Level, Ziele)
+- die Funktionen der App bereitzustellen (Statistiken, Level, Ziele, Freunde)
 - den Dienst sicher und funktionsfähig zu halten
 
 Rechtsgrundlage (soweit die EU-DSGVO gilt): Erfüllung des Vertrags mit dir (Art. 6 Abs. 1 lit. b DSGVO) und unser berechtigtes Interesse an einem sicheren, funktionierenden Dienst (Art. 6 Abs. 1 lit. f DSGVO). Für Nutzerinnen und Nutzer in der Schweiz gilt das Bundesgesetz über den Datenschutz (DSG).
@@ -65,7 +73,9 @@ Leave26 verwendet **kein** Firebase Analytics, kein Google Analytics, keine Werb
 
 ## 6. Weitergabe von Daten
 
-Deine Daten werden weder verkauft noch vermietet noch für eigene Zwecke an Dritte weitergegeben. Andere Nutzer können deine Daten nicht sehen, denn Leave26 hat derzeit keine öffentlichen Profile oder Community-Funktionen.
+Deine Daten werden weder verkauft noch vermietet noch für eigene Zwecke an Dritte weitergegeben.
+
+Andere Nutzer sehen von dir nur, was du selbst freigibst: Hast du einen Benutzernamen festgelegt und eine Freundschaft bestätigt, sieht dieser Freund dein öffentliches Profil (siehe 3.4). Du kannst Freunde jederzeit entfernen; danach sehen sie dein Profil nicht mehr. Unangemessene Namen oder Verhalten kannst du in der App melden oder an **leave26@gmail.com** schreiben.
 
 ## 7. Speicherdauer und Löschung
 
@@ -76,7 +86,7 @@ Du kannst dein Konto jederzeit löschen:
 - **In der App:** Profil → Konto → *Konto löschen*
 - **Ohne App:** siehe [Konto löschen]({{ '/delete-account/' | relative_url }})
 
-Wenn du dein Konto löschst, werden dein Leave26-Konto und alle zugehörigen App-Daten in der Cloud gelöscht und die lokale Kopie auf dem Gerät entfernt. Reste in technischen Backups des Dienstleisters werden nach den Aufbewahrungsfristen von Google gelöscht.
+Wenn du dein Konto löschst, werden dein Leave26-Konto und alle zugehörigen App-Daten in der Cloud gelöscht, einschliesslich Benutzername, öffentlichem Profil und Freundschaften, und die lokale Kopie auf dem Gerät entfernt. Reste in technischen Backups des Dienstleisters werden nach den Aufbewahrungsfristen von Google gelöscht.
 
 Wenn du dich nur abmeldest, bleiben deine Daten in deinem Konto und werden bei der nächsten Anmeldung wiederhergestellt.
 
