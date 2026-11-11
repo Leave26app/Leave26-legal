@@ -41,13 +41,13 @@ Wenn die App mit den Cloud-Diensten kommuniziert, bearbeitet unser Dienstleister
 
 Zusätzlich speichert Leave26 eine Kopie deiner App-Daten auf deinem Gerät, damit die App schnell und auch offline funktioniert.
 
-### 3.4 Benutzername und Freunde (freiwillig)
+### 3.4 Spielername und Freunde (freiwillig)
 
-Wenn du einen **Benutzernamen** festlegst (z. B. @keno10), wird er eindeutig gespeichert. Andere angemeldete Nutzer können prüfen, ob es einen Benutzernamen gibt, aber nur, wenn sie ihn **genau kennen**. Eine Liste aller Namen gibt es nicht.
+Wenn du einen **Spielernamen** festlegst, wird er eindeutig gespeichert. Andere angemeldete Nutzer können prüfen, ob es einen Spielernamen gibt, aber nur, wenn sie ihn **genau kennen**. Eine Liste aller Namen gibt es nicht.
 
-Für Freunde wird ein **öffentliches Profil** angelegt mit: Anzeigename, Benutzername, Profilbild, Level, Rang, Anzahl 180er, Anzahl High Finishes, höchstes Finish und Anzahl geschaffter Checkouts. Dieses Profil sehen **nur Spieler, deren Freundschaftsanfrage du angenommen hast** (bzw. die deine angenommen haben). Dein Verlauf mit Datum und Uhrzeit, deine Wege und deine Ziele bleiben privat.
+Für Freunde wird ein **öffentliches Profil** angelegt mit: Spielername, Profilbild, Level, Rang, Anzahl 180er, Anzahl High Finishes, höchstes Finish und Anzahl geschaffter Checkouts. Dieses Profil sehen **nur Spieler, deren Freundschaftsanfrage du angenommen hast** (bzw. die deine angenommen haben). Dein Verlauf mit Datum und Uhrzeit, deine Wege und deine Ziele bleiben privat.
 
-Für Anfragen speichern wir, wer wen angefragt hat, den Status (offen oder angenommen) und die Benutzernamen beider Seiten.
+Für Anfragen speichern wir, wer wen angefragt hat, den Status (offen oder angenommen) und die Spielernamen beider Seiten.
 
 ## 4. Zwecke und Rechtsgrundlage
 
@@ -75,7 +75,7 @@ Leave26 verwendet **kein** Firebase Analytics, kein Google Analytics, keine Werb
 
 Deine Daten werden weder verkauft noch vermietet noch für eigene Zwecke an Dritte weitergegeben.
 
-Andere Nutzer sehen von dir nur, was du selbst freigibst: Hast du einen Benutzernamen festgelegt und eine Freundschaft bestätigt, sieht dieser Freund dein öffentliches Profil (siehe 3.4). Du kannst Freunde jederzeit entfernen; danach sehen sie dein Profil nicht mehr. Unangemessene Namen oder Verhalten kannst du in der App melden oder an **leave26@gmail.com** schreiben.
+Andere Nutzer sehen von dir nur, was du selbst freigibst: Hast du einen Spielernamen festgelegt und eine Freundschaft bestätigt, sieht dieser Freund dein öffentliches Profil (siehe 3.4). Du kannst Freunde jederzeit entfernen; danach sehen sie dein Profil nicht mehr. Unangemessene Namen oder Verhalten kannst du in der App melden oder an **leave26@gmail.com** schreiben.
 
 ## 7. Speicherdauer und Löschung
 
@@ -86,7 +86,7 @@ Du kannst dein Konto jederzeit löschen:
 - **In der App:** Profil → Konto → *Konto löschen*
 - **Ohne App:** siehe [Konto löschen]({{ '/delete-account/' | relative_url }})
 
-Wenn du dein Konto löschst, werden dein Leave26-Konto und alle zugehörigen App-Daten in der Cloud gelöscht, einschliesslich Benutzername, öffentlichem Profil und Freundschaften, und die lokale Kopie auf dem Gerät entfernt. Reste in technischen Backups des Dienstleisters werden nach den Aufbewahrungsfristen von Google gelöscht.
+Wenn du dein Konto löschst, werden dein Leave26-Konto und alle zugehörigen App-Daten in der Cloud gelöscht, einschliesslich Spielername, öffentlichem Profil und Freundschaften, und die lokale Kopie auf dem Gerät entfernt. Reste in technischen Backups des Dienstleisters werden nach den Aufbewahrungsfristen von Google gelöscht.
 
 Wenn du dich nur abmeldest, bleiben deine Daten in deinem Konto und werden bei der nächsten Anmeldung wiederhergestellt.
 
