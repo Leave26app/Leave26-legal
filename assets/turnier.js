@@ -16,7 +16,13 @@ var EN = {
   "Namen übernehmen": "Add names",
   "Bezahlt": "Paid", "Anwesend": "Here", "Entfernen": "Remove",
   "Noch keine Teilnehmer.": "No players yet.",
-  "Startgeld pro Person": "Entry fee per player", "Eingenommen": "Collected", "offen": "outstanding",
+  "Startgeld pro Person": "Entry fee per player",
+  "Mit Einsatz spielen": "Play for a stake", "Ohne Einsatz": "No stake", "Preisgeld": "Prize money",
+  "Währung": "Currency", "Topf": "Pot", "Zusätzliches Preisgeld (Sponsor)": "Extra prize money (sponsor)",
+  "Abzug Veranstalter (%)": "Organiser share (%)", "Auszahlung": "Payout", "Platz hinzufügen": "Add place", "Platz entfernen": "Remove place",
+  "Die Prozente ergeben zusammen {0} %, nicht 100 %.": "The percentages add up to {0} %, not 100 %.",
+  "Topf = Startgeld × bezahlte Spieler + Sponsor, abzüglich Veranstalter-Anteil.": "Pot = entry fee × paid players + sponsor, minus organiser share.",
+  "geteilt": "shared", "noch offen": "to be decided", "Eingenommen": "Collected", "offen": "outstanding",
   "Anwesend markiert": "Checked in",
   "Wenn mindestens ein Spieler als anwesend markiert ist, werden beim Start nur anwesende Spieler ausgelost.": "If at least one player is checked in, only checked-in players are drawn at the start.",
   "Turniername": "Tournament name", "z. B. Kneipenturnier November": "e.g. Pub tournament November",
@@ -104,7 +110,7 @@ function fresh() {
     v: 2, name: "", players: [], nid: 1,
     fmt: "groups", ng: 2, adv: 2, rr2: false, third: true,
     mg: { bo: 3, x: 501, fix2: false }, mk: { bo: 3, x: 501 }, mf: { bo: 5, x: 501 },
-    nb: 2, writer: false, auto: true, fee: 0,
+    nb: 2, writer: false, auto: true, fee: 0, stake: false, cur: "CHF", extra: 0, house: 0, split: [50, 30, 20],
     started: false, draw: null, res: {}, board: {}, wr: {}, last: {}, wc: {}, fin: {}, defer: {}, t0: null, tab: "t"
   };
 }
@@ -349,18 +355,55 @@ function stats() {
 }
 
 /* ---------- Endstand ---------- */
-function podium() {
-  var b = B();
+// Plätze 1–4: [{from, to, ids}] – geteilte Plätze haben from < to
+function places() {
+  var b = B(), out = [];
+  if (!S.started) return null;
   if (S.fmt === "league") {
     if (!b.list.every(function (m) { return resolve(m.id).done; })) return null;
-    return stand(0).slice(0, 3).map(function (x) { return x.id; });
+    stand(0).slice(0, 4).forEach(function (x, i) { out.push({ from: i + 1, to: i + 1, ids: [x.id] }); });
+    return out;
   }
   var fin = S.fmt === "dko" ? "gf" : "k" + b.k + "_0";
   var rf = resolve(fin); if (!rf.done) return null;
-  var third = null;
-  if (S.fmt === "dko") { var lf = resolve("l" + 2 * (b.k - 1) + "_0"); third = lf.done ? lf.lose : null; }
-  else if (b.byId.p3) { var r3 = resolve("p3"); third = r3.done ? r3.win : null; }
-  return [rf.win, rf.lose, third];
+  out.push({ from: 1, to: 1, ids: [rf.win] });
+  if (rf.lose != null) out.push({ from: 2, to: 2, ids: [rf.lose] });
+  if (S.fmt === "dko") {
+    var J = 2 * (b.k - 1);
+    var l1 = resolve("l" + J + "_0"); if (l1.done && l1.lose != null) out.push({ from: 3, to: 3, ids: [l1.lose] });
+    if (J >= 2) { var l2 = resolve("l" + (J - 1) + "_0"); if (l2.done && l2.lose != null) out.push({ from: 4, to: 4, ids: [l2.lose] }); }
+  } else if (b.k >= 2) {
+    if (b.byId.p3) { var r3 = resolve("p3"); if (r3.done) { if (r3.win != null) out.push({ from: 3, to: 3, ids: [r3.win] }); if (r3.lose != null) out.push({ from: 4, to: 4, ids: [r3.lose] }); } }
+    else { var sl = [resolve("k" + (b.k - 1) + "_0").lose, resolve("k" + (b.k - 1) + "_1").lose].filter(function (x) { return x != null; }); if (sl.length) out.push({ from: 3, to: 3 + sl.length - 1, ids: sl }); }
+  }
+  return out;
+}
+function podium() {
+  var pl = places(); if (!pl) return null;
+  var r = [null, null, null];
+  pl.forEach(function (x) { if (x.from <= 3) r[x.from - 1] = x.ids[0]; });
+  return r;
+}
+/* ---------- Preisgeld ---------- */
+function pot() {
+  var paid = S.players.filter(function (p) { return p.paid && (!S.started || S.draw.ids.indexOf(p.id) >= 0); }).length;
+  var gross = paid * (S.fee || 0) + (S.extra || 0);
+  return { paid: paid, gross: gross, net: gross * (1 - (S.house || 0) / 100) };
+}
+function money(v) { return (Math.round(v * 100) / 100).toFixed(2) + " " + esc(S.cur || ""); }
+function prizeRows(withNames) {
+  var P0 = pot(), pl = withNames ? places() : null, rows = [];
+  S.split.forEach(function (pct, i) {
+    var place = i + 1, who = "";
+    if (pl) { pl.forEach(function (x) { if (place >= x.from && place <= x.to) who = x.ids.map(nm).map(esc).join(", ") + (x.to > x.from ? " (" + t("geteilt") + ")" : ""); }); }
+    rows.push({ place: place, pct: pct, amount: P0.net * pct / 100, who: who });
+  });
+  if (pl) pl.forEach(function (x) {
+    if (x.to <= x.from) return;
+    var sum = 0; for (var q = x.from; q <= x.to; q++) sum += S.split[q - 1] || 0;
+    rows.forEach(function (r) { if (r.place >= x.from && r.place <= x.to) r.shared = P0.net * sum / 100 / x.ids.length; });
+  });
+  return rows;
 }
 
 /* ---------- Boards ---------- */
@@ -469,7 +512,7 @@ function loadDemo() {
   ["Anna", "Ben", "Chris", "Dana", "Eli", "Finn", "Gina", "Hugo", "Ida", "Jan", "Kim", "Lea"].forEach(function (n, i) {
     addPlayer(n); var p = S.players[S.players.length - 1]; p.here = true; p.paid = i < 10;
   });
-  S.fee = 10; S.nb = 3; S.writer = true; S.fmt = "groups"; S.ng = 2; S.adv = 4;
+  S.fee = 10; S.stake = true; S.cur = "CHF"; S.split = [50, 30, 20]; S.nb = 3; S.writer = true; S.fmt = "groups"; S.ng = 2; S.adv = 4;
   startDraw();
   S.board = {}; S.wr = {}; S.wc = {};
   var skill = {}; S.players.forEach(function (p) { skill[p.id] = 45 + Math.random() * 32; });
@@ -522,15 +565,14 @@ function viewSetup() {
     '<div class="plist">' + (S.players.map(function (p) {
       var inT = !locked || S.draw.ids.indexOf(p.id) >= 0;
       return '<div class="pl' + (inT ? "" : " out") + '"><span class="nm">' + esc(p.name) + '</span>' +
-        '<label class="chk"><input type="checkbox" data-pf="paid" data-id="' + p.id + '"' + (p.paid ? " checked" : "") + "> " + t("Bezahlt") + "</label>" +
+        (S.stake ? '<label class="chk"><input type="checkbox" data-pf="paid" data-id="' + p.id + '"' + (p.paid ? " checked" : "") + "> " + t("Bezahlt") + "</label>" : "") +
         (locked ? "" : '<label class="chk"><input type="checkbox" data-pf="here" data-id="' + p.id + '"' + (p.here ? " checked" : "") + "> " + t("Anwesend") + "</label>" +
         '<button class="x" data-do="del" data-id="' + p.id + '" title="' + t("Entfernen") + '" aria-label="' + t("Entfernen") + '">✕</button>') + "</div>";
     }).join("") || '<p class="mu">' + t("Noch keine Teilnehmer.") + "</p>") + "</div>" +
-    '<div class="row fee"><label>' + t("Startgeld pro Person") + ' <input class="n" data-set="fee" inputmode="decimal" value="' + (S.fee || "") + '"></label>' +
-    (S.fee ? '<span class="mu">' + t("Eingenommen") + ": <b>" + (paid * S.fee).toFixed(2) + "</b> · " + t("offen") + ": " + ((n - paid) * S.fee).toFixed(2) + "</span>" : "") +
-    (here ? '<span class="mu">' + t("Anwesend markiert") + ": " + here + "/" + n + "</span>" : "") + "</div>" +
+    (here ? '<p class="mu">' + t("Anwesend markiert") + ": " + here + "/" + n + "</p>" : "") +
     (locked ? "" : '<p class="mu">' + t("Wenn mindestens ein Spieler als anwesend markiert ist, werden beim Start nur anwesende Spieler ausgelost.") + "</p>") + "</div>";
 
+  h += prizeCard();
   if (!locked) {
     h += '<div class="card"><h2>' + t("Format") + "</h2>" +
       '<div class="row"><label>' + t("Turniername") + ' <input data-set="name" value="' + esc(S.name) + '" placeholder="' + t("z. B. Kneipenturnier November") + '" maxlength="60"></label></div>' +
@@ -553,6 +595,34 @@ function viewSetup() {
   h += backupCard();
   h += '<div class="danger row">' + (S.started || S.players.length ? confirmBtn("demo", "🎲 " + t("Beispielturnier laden")) : '<button class="b" data-do="demo">🎲 ' + t("Beispielturnier laden") + "</button>") + confirmBtn("all", "🗑 " + t("Alles löschen")) + '</div><p class="mu">' + t("Lädt ein Beispiel mit 12 Spielern, fertiger Gruppenphase und laufender K.O.-Runde. Der aktuelle Stand wird ersetzt.") + "</p>";
   return h;
+}
+function prizeCard() {
+  var h = '<div class="card"><h2>' + t("Preisgeld") + '</h2><div class="seg">' +
+    '<button class="b' + (!S.stake ? " p" : "") + '" data-do="stake" data-v="0">' + t("Ohne Einsatz") + "</button>" +
+    '<button class="b' + (S.stake ? " p" : "") + '" data-do="stake" data-v="1">' + t("Mit Einsatz spielen") + "</button></div>";
+  if (!S.stake) return h + "</div>";
+  var P0 = pot(), n = S.started ? S.draw.ids.length : S.players.length, sum = S.split.reduce(function (a, b) { return a + (b || 0); }, 0);
+  h += '<div class="row"><label>' + t("Startgeld pro Person") + ' <input class="n" data-set="fee" inputmode="decimal" value="' + (S.fee || "") + '"></label>' +
+    "<label>" + t("Währung") + ' <input class="n" data-set="cur" maxlength="4" value="' + esc(S.cur) + '"></label></div>' +
+    '<div class="row"><label>' + t("Zusätzliches Preisgeld (Sponsor)") + ' <input class="n" data-set="extra" inputmode="decimal" value="' + (S.extra || "") + '"></label>' +
+    "<label>" + t("Abzug Veranstalter (%)") + ' <input class="n" data-set="house" inputmode="decimal" value="' + (S.house || "") + '"></label></div>' +
+    '<p class="mu">' + t("Eingenommen") + ": <b>" + money(P0.paid * (S.fee || 0)) + "</b> (" + P0.paid + "/" + n + ") · " + t("offen") + ": " + money((n - P0.paid) * (S.fee || 0)) + "</p>" +
+    '<div class="pot">' + t("Topf") + ": <b>" + money(P0.net) + '</b></div><div class="split">' +
+    prizeRows(false).map(function (r, i) {
+      return '<div class="pl"><span class="nm"><b>' + r.place + ". " + t("Platz") + '</b></span><input class="n" data-split="' + i + '" inputmode="decimal" value="' + r.pct + '"> %<b class="amt">' + money(r.amount) + "</b></div>";
+    }).join("") + '</div><div class="row">' + (S.split.length < 4 ? '<button class="b sm" data-do="splitadd">+ ' + t("Platz hinzufügen") + "</button>" : "") +
+    (S.split.length > 1 ? '<button class="b sm" data-do="splitdel">− ' + t("Platz entfernen") + "</button>" : "") + "</div>" +
+    (Math.abs(sum - 100) > 0.01 ? '<p class="wa">' + t("Die Prozente ergeben zusammen {0} %, nicht 100 %.", Math.round(sum * 100) / 100) + "</p>" : "") +
+    '<p class="mu">' + t("Topf = Startgeld × bezahlte Spieler + Sponsor, abzüglich Veranstalter-Anteil.") + "</p></div>";
+  return h;
+}
+function prizeResult() {
+  if (!S.stake || !S.started) return "";
+  var rows = prizeRows(true), medal = ["🥇", "🥈", "🥉", "4."];
+  return '<div class="card"><h2>💰 ' + t("Auszahlung") + ' <span class="mu">· ' + t("Topf") + ": " + money(pot().net) + "</span></h2>" +
+    rows.map(function (r) {
+      return '<div class="pl"><span class="tn">' + (medal[r.place - 1] || r.place + ".") + '</span><span class="nm">' + (r.who || '<span class="mu">' + t("noch offen") + "</span>") + '</span><span class="mu">' + r.pct + ' %</span><b class="amt">' + money(r.shared != null ? r.shared : r.amount) + (r.shared != null ? ' <span class="mu">/ ' + (lang() === "en" ? "each" : "pro Kopf") + "</span>" : "") + "</b></div>";
+    }).join("") + "</div>";
 }
 function fmtName(f) { return f === "groups" ? t("Gruppen + K.O.") : f === "ko" ? t("K.O.") : f === "dko" ? t("Doppel-K.O.") : t("Liga (jeder gegen jeden)"); }
 function rulesFmt() {
@@ -644,7 +714,8 @@ function bracketCol(ids, title) {
       var s = side ? r.b : r.a, pid = p[side], w = r.done && r.win != null && r.win === pid && pid != null;
       var label = pid != null ? esc(nm(pid)) : '<span class="mu">' + esc(s ? s.ph : "") + "</span>";
       var sc = r.done && !r.bye ? (side ? res.lb : res.la) : "";
-      return '<div class="br-r' + (w ? " wn" : "") + '"><span>' + label + "</span><b>" + (sc === undefined ? "" : sc) + "</b></div>";
+      var av = r.done && !r.bye ? (side ? res.a2 : res.a1) : null;
+      return '<div class="br-r' + (w ? " wn" : "") + '"><span class="bn">' + label + "</span>" + (av != null ? '<span class="bav">Ø ' + Number(av).toFixed(2) + "</span>" : "") + "<b>" + (sc === undefined ? "" : sc) + "</b></div>";
     };
     var bi = onBoard(id);
     return '<div class="bm' + (bi >= 0 ? " live" : "") + (r.bye ? " byem" : "") + '">' + row(0) + row(1) + (bi >= 0 ? '<div class="mu bmb">🎯 ' + t("Board") + " " + (bi + 1) + "</div>" : "") + "</div>";
@@ -722,17 +793,17 @@ function viewStats() {
   if (!S.started) return startHint();
   var T = stats().filter(function (s) { return s.sp > 0; });
   if (!T.length) return '<div class="card"><p class="mu">' + t("Noch keine Spiele gespielt.") + "</p></div>";
-  var pod = podium(), place = {};
-  if (pod) pod.forEach(function (id, i) { if (id != null) place[id] = i + 1; });
+  var pod = podium(), place = {}, pl = places();
+  if (pl) pl.forEach(function (x) { x.ids.forEach(function (id) { place[id] = x.from; }); });
   T.sort(function (a, b) { return (place[a.id] || 99) - (place[b.id] || 99) || (b.avg || 0) - (a.avg || 0) || b.w - a.w; });
   function best(key, low, fmt) {
     var c = T.filter(function (s) { return s[key]; }).sort(function (a, b) { return low ? a[key] - b[key] : b[key] - a[key]; })[0];
     return c ? esc(nm(c.id)) + " <b>" + fmt(c[key]) + "</b>" : "–";
   }
   var chip = function (title, v) { return '<div class="chip"><div class="mu">' + title + "</div><div>" + v + "</div></div>"; };
-  var medal = ["🥇", "🥈", "🥉"];
+  var medal = ["🥇", "🥈", "🥉", "4."];
   return (pod && pod[0] != null ? '<div class="card champ">🏆 ' + t("Turniersieger") + "<b>" + esc(nm(pod[0])) + "</b></div>" : "") +
-    '<div class="chips">' + chip("🎯 " + t("Bestes Ø-Average"), best("avg", false, function (v) { return v.toFixed(2); })) + chip("💯 " + t("Meiste 180er"), best("t180", false, function (v) { return v; })) +
+    prizeResult() + '<div class="chips">' + chip("🎯 " + t("Bestes Ø-Average"), best("avg", false, function (v) { return v.toFixed(2); })) + chip("💯 " + t("Meiste 180er"), best("t180", false, function (v) { return v; })) +
     chip("🔥 " + t("Höchstes Finish"), best("hf", false, function (v) { return v; })) + chip("⚡ " + t("Kürzestes Leg"), best("bl", true, function (v) { return v + (lang() === "en" ? " darts" : " Darts"); })) + "</div>" +
     '<div class="card"><h2>' + t("Statistik") + (pod ? "" : ' <span class="mu">(' + t("vorläufig") + ")</span>") + '</h2><div class="sc"><table><tr><th>' + t("Platz") + '</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th><th>" + t("S") + "</th><th>" + t("N") + "</th><th>" + t("Legs") + "</th><th>" + t("Ø") + "</th><th>" + t("Bester Ø") + "</th><th>180</th><th>HF</th><th>" + (lang() === "en" ? "Best leg" : "Bestes Leg") + "</th></tr>" +
     T.map(function (s) { var pl = place[s.id]; return "<tr><td>" + (pl ? medal[pl - 1] : "–") + '</td><td class="l">' + esc(nm(s.id)) + "</td><td>" + s.sp + "</td><td>" + s.w + "</td><td>" + s.l + "</td><td>" + s.lf + ":" + s.la + "</td><td><b>" + (s.avg != null ? s.avg.toFixed(2) : "–") + "</b></td><td>" + (s.mx ? s.mx.toFixed(2) : "–") + "</td><td>" + (s.t180 || "–") + "</td><td>" + (s.hf || "–") + "</td><td>" + (s.bl || "–") + "</td></tr>"; }).join("") +
@@ -776,7 +847,10 @@ function render() {
 
 /* ---------- Ereignisse ---------- */
 function setOpt(k, v) {
-  if (k === "fee") { S.fee = num(v) || 0; return; }
+  if (k === "fee") { S.fee = Math.max(0, num(v) || 0); return; }
+  if (k === "extra") { S.extra = Math.max(0, num(v) || 0); return; }
+  if (k === "house") { S.house = Math.min(100, Math.max(0, num(v) || 0)); return; }
+  if (k === "cur") { S.cur = String(v).trim().slice(0, 4); return; }
   if (k === "name") { S.name = String(v).slice(0, 60); return; }
   if (k === "ng" || k === "adv" || k === "nb") { S[k] = +v; return; }
   var mk = k.split("_");
@@ -806,6 +880,9 @@ root.addEventListener("click", function (e) {
       break;
     case "unpend": UI.pend = null; break;
     case "demo": loadDemo(); break;
+    case "stake": S.stake = el.getAttribute("data-v") === "1"; break;
+    case "splitadd": if (S.split.length < 4) S.split.push(0); break;
+    case "splitdel": if (S.split.length > 1) S.split.pop(); break;
     case "edit": UI.edit = id; break;
     case "cancel": UI.edit = null; break;
     case "call": callNext(+bi); break;
@@ -827,6 +904,7 @@ root.addEventListener("change", function (e) {
   var el = e.target;
   if (el.matches("[data-set]")) { setOpt(el.getAttribute("data-set"), el.value); }
   else if (el.matches("[data-sb]")) { S[el.getAttribute("data-sb")] = el.checked; }
+  else if (el.matches("[data-split]")) { S.split[+el.getAttribute("data-split")] = Math.max(0, num(el.value) || 0); }
   else if (el.matches("[data-pf]")) { var p = P(+el.getAttribute("data-id")); if (p) p[el.getAttribute("data-pf")] = el.checked; }
   else if (el.matches('[data-do="importfile"]')) { var f = el.files && el.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { importData(rd.result); dirty(); save(); render(); }; rd.readAsText(f); return; }
   else return;

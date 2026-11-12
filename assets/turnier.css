@@ -7,7 +7,7 @@
 #tp h3.sub{font:700 16px/1.2 var(--display);margin:16px 0 4px;color:var(--ink-2)}
 #tp-nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
 #tp-nav button{flex:1;padding:10px 6px;border:1px solid var(--bd);background:var(--card);color:var(--ink-2);border-radius:999px;font:600 14px/1.2 var(--body);cursor:pointer}
-#tp-nav button.on{background:var(--brand);color:var(--night);border-color:transparent}
+#tp-nav button.on{background:var(--brand) border-box;color:var(--night);border-color:transparent}
 @media (max-width:640px){#tp-nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1*var(--gutter)) 14px;padding:0 var(--gutter)}#tp-nav::-webkit-scrollbar{display:none}#tp-nav button{flex:none;padding:9px 14px}}
 #tp .card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:14px;min-width:0}
 #tp details.card>summary{cursor:pointer;color:var(--ink)}
@@ -67,13 +67,16 @@
 /* Turnierbaum */
 #tp .br{display:flex;gap:18px;overflow-x:auto;padding-bottom:6px}
 #tp .br.p3{margin-top:12px}
-#tp .brc{display:flex;flex-direction:column;min-width:180px;flex:none}
+#tp .brc{display:flex;flex-direction:column;min-width:200px;flex:none}
 #tp .brm{display:flex;flex-direction:column;justify-content:space-around;gap:10px;flex:1}
 #tp .bm.byem{opacity:.5}
 #tp .brt{text-align:center;margin-bottom:8px}
 #tp .bm{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:6px 10px;font-size:14px}
 #tp .bm.live{border-color:var(--ac)}
-#tp .br-r{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+#tp .br-r{display:flex;align-items:baseline;gap:8px;padding:2px 0}
+#tp .br-r .bn{flex:1}
+#tp .br-r .bav{font-size:11px;color:var(--mu);font-weight:400;font-variant-numeric:tabular-nums}
+#tp .br-r b{min-width:14px;text-align:right}
 #tp .br-r+.br-r{border-top:1px solid var(--bd)}
 #tp .br-r.wn{color:var(--ac);font-weight:700}
 #tp .bmb{margin-top:2px}
@@ -93,3 +96,8 @@ body.tv #tp table{font-size:1em}
 #tp .promo img{width:72px;height:72px;border-radius:8px;flex:none}
 body.tv #tp .promo{display:none}
 @media (prefers-reduced-motion:reduce){#tp *{transition:none!important}}
+#tp .pot{font:700 20px/1.2 var(--display);color:var(--ink);margin:10px 0 4px}
+#tp .pot b{color:var(--ac)}
+#tp .amt{min-width:90px;text-align:right;font-variant-numeric:tabular-nums}
+#tp .split .pl{flex-wrap:nowrap}
+#tp .split .nm{min-width:80px}
