@@ -1,0 +1,364 @@
+---
+layout: default
+title: Tournament planner
+title_de: Turnier-Planer
+description: Kostenloser Dartturnier-Planer von Leave26 – Gruppen, K.O.-Runde, Boards und TV-Ansicht für lokale Turniere.
+permalink: /turnier/
+---
+{% raw %}
+<style>
+#tp{--bg:var(--night-soft);--card:var(--panel);--tx:var(--ink);--mu:var(--muted);--ac:var(--cyan);--ac2:rgba(0,217,245,.12);--bd:var(--line);--wa:#FFB35C;
+ max-width:900px;margin:0 auto;padding:24px var(--gutter) 48px;font-size:15px;line-height:1.45;color:var(--tx)}
+#tp h1{font:800 clamp(34px,5vw,48px)/1 var(--display);margin:6px 0 6px;color:var(--ink)}
+#tp .intro{color:var(--ink-2);margin:0 0 18px;max-width:60ch}
+#tp .ennote{color:var(--wa);font-size:14px;margin:-8px 0 16px}
+html[lang="de"] #tp .ennote{display:none}
+#tp h2{font:700 20px/1.2 var(--display);letter-spacing:.01em;margin:0 0 10px;color:var(--ink)}
+#tpnav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+#tpnav button{flex:1;padding:10px 4px;border:1px solid var(--bd);background:var(--card);color:var(--ink-2);border-radius:999px;font:600 14px/1.2 var(--body);cursor:pointer}
+@media (max-width:600px){#tpnav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1*var(--gutter)) 14px;padding:0 var(--gutter)}#tpnav::-webkit-scrollbar{display:none}#tpnav button{flex:none;padding:9px 14px}}
+#tpnav button.on{background:var(--brand);color:var(--night);border-color:transparent}
+#tp .card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:14px}
+#tp .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#tp input,#tp select,#tp button.b,#tp textarea{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:8px 10px}
+#tp input.n{width:58px;text-align:center;padding:7px 4px}
+#tp button.b{cursor:pointer;font-weight:600}
+#tp button.b:hover{border-color:var(--ac)}
+#tp button.p{background:var(--ac);color:var(--night);border-color:var(--ac)}
+#tp button.x{background:none;border:none;color:var(--mu);cursor:pointer;font-size:18px}
+#tp .mu{color:var(--mu);font-size:13px}#tp .wa{color:var(--wa);font-size:13px}
+#tp .pl{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd)}
+#tp .pl span.nm{flex:1}
+#tp .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+#tp .sc{overflow-x:auto}
+#tp .g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr))}
+#tp .g2 table{font-size:14px}#tp .g2 th,#tp .g2 td{padding:6px 5px}#tp .g2 th{font-size:12px}
+#tp table{border-collapse:collapse;width:100%;font-size:14px}
+#tp th,#tp td{padding:6px;text-align:center;border-bottom:1px solid var(--bd);white-space:nowrap}
+#tp th{color:var(--mu);font-weight:600;font-size:12px}#tp td.l,#tp th.l{text-align:left}
+#tp tr.q td{background:var(--ac2)}
+#tp .m{padding:8px 0;border-bottom:1px solid var(--bd)}
+#tp .m .t{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center}
+#tp .m .t div:first-child{text-align:right}#tp .m .t div:last-child{text-align:left}
+#tp .m .a{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-top:4px}
+#tp .m .a span{font-size:12px;color:var(--mu);text-align:center}
+#tp .m .a input{width:100%}
+#tp .w{font-weight:700;color:var(--ac)}
+#tp .ko{margin-bottom:14px}#tp .ko h3{margin:0 0 4px;font:700 16px/1.2 var(--display);color:var(--mu)}
+#tp .champ{text-align:center;padding:18px;font-size:20px}
+#tp .champ b{display:block;font:800 30px/1.1 var(--display);background:var(--brand);-webkit-background-clip:text;background-clip:text;color:transparent}
+#tp .call{font:700 22px/1.2 var(--display);text-align:center;margin:6px 0 4px;color:var(--ink)}
+#tp .big{font:800 2.1em/1.15 var(--display);color:var(--ink)}#tp .tvb{text-align:center;padding:22px 14px}
+#tp summary{color:var(--ink)}
+#tp details li{color:var(--ink-2)}
+body.tv{font-size:20px}
+body.tv .site-header,body.tv .site-footer{display:none}
+body.tv #tp{font-size:20px;max-width:none}
+body.tv #tp .ennote{display:none}
+body.tv #tp table{font-size:1em}
+#tp .tvbrand{display:flex;align-items:center;gap:20px;margin-top:18px;padding:16px;border:1px solid var(--bd);border-radius:16px;background:var(--card)}
+#tp .tvbrand img{width:120px;height:120px;border-radius:10px;flex:none}
+#tp .tvwm{font:800 32px/1 var(--display);color:var(--ink);margin-bottom:4px}
+#tp .tvwm b{background:var(--brand);-webkit-background-clip:text;background-clip:text;color:transparent}
+#tp .promo{display:flex;align-items:center;gap:14px;margin-top:6px}
+#tp .promo img{width:72px;height:72px;border-radius:8px;flex:none}
+</style>
+<section id="tp"><div id="mn">
+<h1 id="tph1">Dartturnier-Planer</h1>
+<p class="intro" id="tpintro">Plane dein lokales Dartturnier kostenlos: Teilnehmer eintragen, Gruppen auslosen, Spiele auf zwei Boards verteilen, K.O.-Runde und TV-Ansicht für den zweiten Bildschirm. Alles bleibt in deinem Browser gespeichert.</p>
+<p class="ennote">The tournament planner is currently available in German only. An English version is coming soon.</p>
+<nav id="tpnav"></nav>
+<div id="v"></div>
+<div class="card promo"><img src="/Leave26-legal/assets/img/play-qr.svg" alt="QR-Code zu Leave26 im Play Store" width="72" height="72"><div><b>Leave26 für dein eigenes Training</b><div class="mu">Checkouts sammeln, 180er zählen und dich mit deinen Freunden vergleichen. Gratis im Google Play Store.</div></div></div>
+</div></section>
+<script>
+const QR="/Leave26-legal/assets/img/play-qr.svg";
+
+const KEY="leave26-turnier-v1";
+let S={players:[],ng:2,res:{},ko:{},tab:"t",nid:1};
+try{const s=localStorage.getItem(KEY);if(s)S=Object.assign(S,JSON.parse(s))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const L="ABC";
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const num=v=>{v=String(v).trim().replace(",",".");if(v==="")return null;const n=parseFloat(v);return isNaN(n)?null:n};
+const P=id=>S.players.find(p=>p.id===id);
+const inG=g=>S.players.filter(p=>p.g===g);
+
+function addP(){const i=document.getElementById("nn");const n=i.value.trim();if(!n)return;
+ if(S.players.length>=12)return;
+ S.players.push({id:S.nid++,name:n,g:0});autoG(false);i.value="";save();render();document.getElementById("nn").focus()}
+function delP(id){S.players=S.players.filter(p=>p.id!==id);autoG(false);save();render()}
+function autoG(shuffle){S.skip={};S.extra=[];
+ let a=S.players.slice();
+ if(shuffle)for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+ else a.sort((x,y)=>x.g-y.g||x.id-y.id);
+ a.forEach((p,i)=>p.g=i%S.ng);
+}
+function setNg(n){S.ng=+n;autoG(false);save();render()}
+function setG(id,g){S.skip={};S.extra=[];P(id).g=+g;save();render()}
+let pend=null;
+const matchList2=ms=>{const po={};sched().forEach((m,i)=>po[m.id]=i+1);
+ const kk=([x,y,s])=>x.id+"_"+y.id+(s||"");
+ const act=ms.filter(m=>!sk(m[0].id+"_"+m[1].id)).sort((a,b)=>po["g:"+kk(a)]-po["g:"+kk(b)]),off=ms.filter(m=>sk(m[0].id+"_"+m[1].id)&&!m[2]);
+ return (act.map(m=>{const [x,y]=m,k=kk(m);return `<div class="mu" style="margin-top:8px">Spiel Nr. ${po["g:"+k]}${m[2]?" · Rückspiel":""}</div>`+(oMap()[k]===y.id?matchRow(y.name,x.name,S.res[k],"res",k,1):matchRow(x.name,y.name,S.res[k],"res",k))+(m[2]?"":`<div style="text-align:right;margin:-2px 0 2px"><button class="x" style="font-size:12px" onclick="toggleSkip('${k}')">Spiel entfällt</button></div>`)}).join("")||'<p class="mu">Keine Spiele.</p>')+off.map(([x,y])=>{const k=x.id+"_"+y.id;return `<div class="m mu">${esc(x.name)} – ${esc(y.name)}: entfällt <button class="b" style="padding:2px 8px" onclick="toggleSkip('${k}')">zurück</button></div>`}).join("")};
+function capExtra(){S.extra=[];for(let g=0;g<S.ng;g++){const ps=inG(g).slice();if(ps.length!==4)continue;for(let q=3;q>0;q--){const z=Math.floor(Math.random()*(q+1));[ps[q],ps[z]]=[ps[z],ps[q]]}for(let i=0;i<4;i+=2){const a=ps[i],b=ps[i+1];S.extra.push(Math.min(a.id,b.id)+"_"+Math.max(a.id,b.id))}}save();render()}
+function upd(store,key,f,v){const id=(store==="res"?"g:":"k:")+key,f0=info(id),was=!!(f0&&done(f0.r,f0.st));upd0(store,key,f,v);const f1=info(id);if(!was&&f1&&f1.p[0]&&f1.p[1]&&done(f1.r,f1.st)){S.fin=S.fin||{};const t=Date.now();S.fin[f1.p[0].id]=t;S.fin[f1.p[1].id]=t;save();render()}}
+const fmtW=t=>{let s=Math.max(0,Math.floor((Date.now()-t)/1000));const h=Math.floor(s/3600),m=Math.floor(s%3600/60);s%=60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")};
+setInterval(()=>{document.querySelectorAll("[data-w]").forEach(e=>{if(e.dataset.w)e.textContent=fmtW(+e.dataset.w)})},1000);
+function waitList(){
+ const play=new Set();(S.boards||[]).forEach(id=>{if(id){const f=info(id);if(f&&!done(f.r,f.st))f.p.forEach(p=>p&&play.add(p.id))}});
+ const qi={};queue().forEach((id,n)=>info(id).p.forEach(p=>{if(qi[p.id]===undefined)qi[p.id]=n}));
+ const rows=S.players.filter(p=>!play.has(p.id)&&qi[p.id]!==undefined).map(p=>({p,t:(S.fin&&S.fin[p.id])||S.t0||null}));
+ rows.sort((a,b)=>(a.t||1e18)-(b.t||1e18)||qi[a.p.id]-qi[b.p.id]);
+ return{rows,play}}
+const waitHtml=n=>{const {rows,play}=waitList();const pn=[...play].map(id=>P(id)).filter(Boolean).map(p=>esc(p.name)).join(", ");
+ return (rows.slice(0,n||99).map(r=>`<div class="pl"><span class="nm">${esc(r.p.name)}</span><b data-w="${r.t||""}" style="font-variant-numeric:tabular-nums">${r.t?fmtW(r.t):"\u2013"}</b></div>`).join("")||'<p class="mu">Niemand wartet.</p>')+(pn?`<p class="mu" style="margin-top:8px">\ud83c\udfaf Am Board: ${pn}</p>`:"")};
+let BK="",IM="";
+function exportD(){const j=JSON.stringify(S,null,1);BK=j;IM="";
+ try{const b=new Blob([j],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="dartturnier-"+new Date().toISOString().slice(0,16).replace(/[:T]/g,"-")+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}catch(e){}
+ render()}
+function importD(t){IM="";try{const o=JSON.parse(String(t).trim());if(!o||!Array.isArray(o.players)||!o.res||typeof o.res!=="object")throw 0;S=Object.assign({players:[],ng:2,res:{},ko:{},tab:"t",nid:1},o);S.tab="t";BK="";IM="\u2714 Stand wiederhergestellt ("+S.players.length+" Spieler).";save()}catch(e){IM="Import fehlgeschlagen: Die Daten sind ung\u00fcltig."}render()}
+function impFile(i){const f=i.files&&i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>importD(r.result);r.readAsText(f)}
+const TA="width:100%;font:inherit;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px";
+const backup=()=>`<div class="card"><h2>Datensicherung</h2><div class="row"><button class="b p" onclick="exportD()">\u2b07 Sichern (Datei herunterladen)</button><label style="cursor:pointer;border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font-weight:600;background:var(--bg)">\u2b06 Wiederherstellen (Datei w\u00e4hlen)<input type="file" accept=".json,application/json" onchange="impFile(this)" style="display:none"></label></div>
+${BK?`<p class="mu">Falls der Download nicht startet: Text kopieren und in einer Textdatei speichern.</p><textarea readonly rows="4" style="${TA}" onclick="this.select()">${esc(BK)}</textarea>`:""}
+<p class="mu" style="margin-top:10px">Oder gesicherten Text einf\u00fcgen:</p><textarea id="imp" rows="2" style="${TA}" placeholder="Gesicherten Text hier einf\u00fcgen"></textarea><div class="row" style="margin-top:6px"><button class="b" onclick="importD(document.getElementById('imp').value)">Text importieren</button></div>
+${IM?`<p class="${IM.startsWith("\u2714")?"w":"wa"}">${esc(IM)}</p>`:""}<p class="mu">Wiederherstellen \u00fcberschreibt den aktuellen Stand.</p></div>`;
+function setSm(v){S.sm=v;save();render()}
+function tabS2(){
+ if(!S.players.length)return`<div class="card">Noch keine Spieler.</div>`;
+ const T=stats(),dr=T.some(t=>t.d),pm=S.sm==="platz";
+ const gi={};for(let g=0;g<S.ng;g++)stand(g).forEach((t,i)=>{gi[t.p.id]={g,i,sp:t.sp,df:t.diff,lf:t.lf,av:t.avg}});
+ const pl={},qual=new Set();let fin=false,champ=null;
+ if(S.players.length>=4){const K=S.ko||{},s=seeds();s.forEach(p=>p&&qual.add(p.id));
+  const f1=wn(K.sf1,s[0],s[1],"s"),f2=wn(K.sf2,s[2],s[3],"s"),l1=ls(K.sf1,s[0],s[1],"s"),l2=ls(K.sf2,s[2],s[3],"s");
+  const c=wn(K.f,f1,f2,"f"),r2=ls(K.f,f1,f2,"f"),t3=wn(K.p3,l1,l2,"s"),t4=ls(K.p3,l1,l2,"s");
+  [c,r2,t3,t4].forEach((p,i)=>{if(p)pl[p.id]=i+1});fin=!!(c&&t3);champ=c}
+ const D={i:9,sp:0,df:0,lf:0,av:0};
+ const ord=T.slice().sort((a,b)=>{const pa=pl[a.p.id]||99,pb=pl[b.p.id]||99;if(pa!==pb)return pa-pb;const qa=qual.has(a.p.id)?0:1,qb=qual.has(b.p.id)?0:1;if(qa!==qb)return qa-qb;const A=gi[a.p.id]||D,B=gi[b.p.id]||D;return A.i-B.i||B.sp-A.sp||B.df-A.df||B.lf-A.lf||(B.av||0)-(A.av||0)});
+ const medal=["\ud83e\udd47","\ud83e\udd48","\ud83e\udd49"],lab={};
+ ord.forEach((t,i)=>{const n=pl[t.p.id];lab[t.p.id]=n?(medal[n-1]||n+"."):(fin?(i+1)+".":"\u2013")});
+ const rows=pm?ord:T;
+ const pick=(key,fmt)=>{const m=[...T].sort((a,b)=>(b[key]||0)-(a[key]||0))[0];return m&&m[key]?`${esc(m.p.name)} <b>${fmt(m[key])}</b>`:"\u2013"};
+ const chip=(t,v)=>`<div class="card" style="margin:0"><div class="mu">${t}</div><div style="font-size:17px">${v}</div></div>`;
+ return `<div class="row" style="margin-bottom:12px"><button class="b ${pm?"":"p"}" onclick="setSm('avg')">Nach Average</button><button class="b ${pm?"p":""}" onclick="setSm('platz')">Nach Turnierplatzierung</button></div>
+ ${champ?`<div class="card champ" style="padding:12px">\ud83c\udfc6 Turniersieger: <b style="display:inline">${esc(champ.name)}</b></div>`:""}
+ <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:14px">${chip("\ud83c\udfaf Bestes \u00d8-Average",pick("avg",v=>v.toFixed(2)))}${chip("\u26a1 H\u00f6chster Spiel-\u00d8",pick("mx",v=>v.toFixed(2)))}${chip("\ud83c\udfc6 Meiste Siege",pick("w",v=>v))}</div>
+ <div class="card"><h2>Endtabelle &amp; Statistik</h2><div class="sc"><table><tr><th>#</th><th>Platz</th><th class="l">Spieler</th><th>Grp</th><th>Sp</th><th>S</th>${dr?"<th>U</th>":""}<th>N</th><th>Legs</th><th>\u00d8</th><th>Bester \u00d8</th></tr>
+ ${rows.map((t,i)=>{const g=gi[t.p.id];return `<tr><td>${i+1}</td><td>${lab[t.p.id]}</td><td class="l">${esc(t.p.name)}</td><td>${g?L[g.g]+(g.i+1):"\u2013"}</td><td>${t.sp}</td><td>${t.w}</td>${dr?`<td>${t.d}</td>`:""}<td>${t.l}</td><td>${t.lf}:${t.la}</td><td><b>${t.avg!=null?t.avg.toFixed(2):"\u2013"}</b></td><td>${t.mx?t.mx.toFixed(2):"\u2013"}</td></tr>`}).join("")}</table></div>
+ <p class="mu">\u00d8 = Durchschnitt der eingetragenen Spiel-Averages (Gruppen und K.O.). Grp = Gruppe und Platz in der Gruppe. Die Platzierung 1\u20134 ergibt sich aus Finale und Spiel um Platz 3, alle weiteren Spieler werden nach Gruppenplatz, Punkten, Leg-Differenz, Legs und Average eingeordnet.${fin?"":" Bis Finale und Spiel um Platz 3 gespielt sind, ist die Platzierung vorl\u00e4ufig."}</p></div>`}
+const orient=f=>f.sw&&f.r?{...f.r,a:f.r.b,b:f.r.a,x:f.r.y,y:f.r.x}:f.r;
+let _os="",_om={};
+function oMap(){
+ const ms=[];for(let g=0;g<S.ng;g++){const ps=inG(g);for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const [x,y]=ps[i].id<ps[j].id?[ps[i],ps[j]]:[ps[j],ps[i]];const k=x.id+"_"+y.id;if(!sk(k)&&!(S.extra||[]).includes(k))ms.push({k,a:x.id,b:y.id})}}
+ const sig=ms.map(m=>m.k).join()+"|"+(S.extra||[]).join();if(sig===_os)return _om;_os=sig;
+ const E=ms.map((m,i)=>({i,a:m.a,b:m.b,u:false})),deg={};
+ E.forEach(e=>{deg[e.a]=(deg[e.a]||0)+1;deg[e.b]=(deg[e.b]||0)+1});
+ Object.keys(deg).filter(v=>deg[v]%2).forEach(v=>E.push({i:-1,a:0,b:+v,u:false,d:true}));
+ const adj={};E.forEach((e,n)=>{(adj[e.a]=adj[e.a]||[]).push(n);(adj[e.b]=adj[e.b]||[]).push(n)});
+ const first={};
+ [0,...Object.keys(deg).map(Number)].forEach(s=>{let v=s;for(;;){const n=(adj[v]||[]).find(n=>!E[n].u);if(n===undefined)break;const e=E[n];e.u=true;const w=e.a===v?e.b:e.a;if(!e.d)first[ms[e.i].k]=v;v=w}});
+ (S.extra||[]).forEach(key=>{const [a,b]=key.split("_");first[key]=+a;first[key+"_r"]=+b});_om=first;return first}
+let TV=location.hash==="#tv";
+function tvOn(){TV=true;try{const r=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(r&&r.catch)r.catch(()=>{})}catch(e){}render()}
+function tvOff(){TV=false;try{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});if(location.hash==="#tv")history.replaceState(null,"",location.pathname+location.search)}catch(e){}render()}
+function openTv(){try{window.open(location.href.split("#")[0]+"#tv","_blank")}catch(e){}}
+window.addEventListener("storage",e=>{if(e.key===KEY&&e.newValue){try{S=Object.assign({players:[],ng:2,res:{},ko:{},tab:"t",nid:1},JSON.parse(e.newValue))}catch(x){}if(TV)render()}});
+function stats(){
+ const T={};S.players.forEach(p=>T[p.id]={p,sp:0,w:0,d:0,l:0,lf:0,la:0,av:[],s:0,hf:0,mx:0});
+ const ids=sched().map(m=>m.id);if(S.players.length>=4)ids.push("k:sf1","k:sf2","k:p3","k:f");
+ ids.forEach(id=>{const f=info(id);if(!f||!f.p[0]||!f.p[1]||!done(f.r,f.st))return;const r=orient(f),a=T[f.p[0].id],b=T[f.p[1].id];if(!a||!b)return;
+  [[a,r.a,r.b,r.x,r.s1,r.h1],[b,r.b,r.a,r.y,r.s2,r.h2]].forEach(([t,lf,la,av,s,h])=>{t.sp++;t.lf+=lf;t.la+=la;if(lf>la)t.w++;else if(lf<la)t.l++;else t.d++;if(av!=null){t.av.push(av);t.mx=Math.max(t.mx,av)}t.s+=s||0;t.hf=Math.max(t.hf,h||0)})});
+ return Object.values(T).map(t=>({...t,avg:t.av.length?t.av.reduce((x,y)=>x+y,0)/t.av.length:null})).sort((a,b)=>(b.avg??-1)-(a.avg??-1)||b.w-a.w)}
+function tabS(){
+ if(!S.players.length)return`<div class="card">Noch keine Spieler.</div>`;
+ const T=stats(),dr=T.some(t=>t.d);
+ const pick=(key,fmt)=>{const m=[...T].sort((a,b)=>(b[key]||0)-(a[key]||0))[0];return m&&m[key]?`${esc(m.p.name)} <b>${fmt(m[key])}</b>`:"\u2013"};
+ const chip=(t,v)=>`<div class="card" style="margin:0"><div class="mu">${t}</div><div style="font-size:17px">${v}</div></div>`;
+ return `<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:14px">${chip("\ud83c\udfaf Bestes \u00d8-Average",pick("avg",v=>v.toFixed(2)))}${chip("\u26a1 H\u00f6chster Spiel-\u00d8",pick("mx",v=>v.toFixed(2)))}${chip("\ud83c\udfc6 Meiste Siege",pick("w",v=>v))}</div>
+ <div class="card"><h2>Average-Rangliste &amp; Spielerstatistik</h2><div class="sc"><table><tr><th>#</th><th class="l">Spieler</th><th>Sp</th><th>S</th>${dr?"<th>U</th>":""}<th>N</th><th>Legs</th><th>\u00d8</th><th>Bester \u00d8</th></tr>
+ ${T.map((t,i)=>`<tr><td>${i+1}</td><td class="l">${esc(t.p.name)}</td><td>${t.sp}</td><td>${t.w}</td>${dr?`<td>${t.d}</td>`:""}<td>${t.l}</td><td>${t.lf}:${t.la}</td><td><b>${t.avg!=null?t.avg.toFixed(2):"\u2013"}</b></td><td>${t.mx?t.mx.toFixed(2):"\u2013"}</td></tr>`).join("")}</table></div>
+ <p class="mu">\u00d8 = Durchschnitt der eingetragenen Spiel-Averages (Gruppen und K.O.).</p></div>`}
+const tvBrand=()=>`<div class="tvbrand"><img src="${QR}" alt="QR-Code zu Leave26 im Play Store" width="120" height="120"><div><div class="tvwm">LEAVE<b>26</b></div><div>Mit Leave26 geplant. Checkouts sammeln, 180er zählen, mit Freunden vergleichen.</div><div class="mu">Gratis im Google Play Store – QR-Code scannen</div></div></div>`;
+function renderTv(){
+ S.boards=S.boards||[null,null];
+ document.getElementById("tpnav").innerHTML="";document.getElementById("mn").style.maxWidth="100%";
+ const q=queue(),T=stats(),bs=busy(-1);
+ const bcard=i=>{const id=S.boards[i],f=id&&info(id);
+  if(!f||!f.p[0]||!f.p[1])return `<div class="card tvb"><div class="mu">BOARD ${i+1}</div><div class="big" style="color:var(--ac)">frei</div></div>`;
+  const d=done(f.r,f.st);
+  return `<div class="card tvb"><div class="mu">BOARD ${i+1} \u00b7 ${f.label}</div><div class="big">${esc(f.p[0].name)}</div><div class="mu">gegen</div><div class="big">${esc(f.p[1].name)}</div>${d?`<div class="big" style="color:var(--ac)">${orient(f).a} : ${orient(f).b}</div>`:`<div class="mu">${modeTxt(f.st)}</div>`}</div>`};
+ const nx=q.slice(0,5).map((id,n)=>{const f=info(id),bz=f.p.some(p=>bs.has(p.id));return `<div class="pl"><span class="mu" style="width:26px">${n+1}.</span><span class="nm">${esc(f.p[0].name)} \u2013 ${esc(f.p[1].name)} <span class="mu">${f.label}${bz?" \u00b7 \u23f3":""}</span></span></div>`}).join("")||'<p class="mu">Keine offenen Spiele.</p>';
+ const ta=T.filter(t=>t.avg!=null).slice(0,5).map((t,i)=>`<div class="pl"><span class="mu" style="width:26px">${i+1}.</span><span class="nm">${esc(t.p.name)}</span><b>${t.avg.toFixed(2)}</b></div>`).join("")||'<p class="mu">Noch keine Averages.</p>';
+ const tables=[...Array(S.ng)].map((_,g)=>{const t=stand(g),qn=S.ng===2?2:1;return `<div class="card"><h2>Gruppe ${L[g]}</h2><table><tr><th>#</th><th class="l">Spieler</th><th>Sp</th><th>Legs</th><th>\u00d8</th><th>Pkt</th></tr>${t.map((x,i)=>`<tr class="${i<qn?"q":""}"><td>${i+1}</td><td class="l">${esc(x.p.name)}</td><td>${x.w+x.d+x.l}</td><td>${x.lf}:${x.la}</td><td>${x.avg?x.avg.toFixed(1):"\u2013"}</td><td><b>${x.sp}</b></td></tr>`).join("")}</table></div>`}).join("");
+ const ko=allDone()&&S.players.length>=4?`<div class="card"><h2>K.O.-Runde</h2>${["k:sf1","k:sf2","k:p3","k:f"].map(id=>{const f=info(id),n=x=>x?esc(x.name):"?",r=done(f.r,f.st)?` <b>${f.r.a}:${f.r.b}</b>`:"";return `<div class="pl"><span class="mu" style="width:140px">${f.label}</span><span class="nm">${n(f.p[0])} \u2013 ${n(f.p[1])}</span>${r}</div>`}).join("")}</div>`:"";
+ document.getElementById("v").innerHTML=`<div class="row" style="justify-content:space-between;margin-bottom:10px"><div class="big">\ud83c\udfaf Dartturnier</div><button class="b" onclick="tvOff()">\u2715 TV-Ansicht beenden</button></div><div class="grid">${bcard(0)}${bcard(1)}</div><div class="grid" style="margin-top:14px"><div class="card"><h2>N\u00e4chste Spiele</h2>${nx}</div><div class="card"><h2>Top Average</h2>${ta}</div><div class="card"><h2>⏱ Wartezeit</h2>${waitHtml(6)}</div></div><div class="grid g2" style="margin-top:14px">${tables}</div>${ko?`<div style="margin-top:14px">${ko}</div>`:""}${tvBrand()}`;
+}
+const regeln=()=>`<details class="card" open><summary style="font-weight:700;font-size:17px;cursor:pointer">📜 Regelwerk</summary><ul style="margin:10px 0 0;padding-left:20px;display:grid;gap:6px">
+<li><b>Spielmodus:</b> Gruppenphase – ${modeTxt("g")}; Halbfinale – ${modeTxt("s")}; Finale – ${modeTxt("f")}.</li>
+<li><b>Ausscore-Regel:</b> Ist ein Leg nach 60 Darts pro Spieler (20 Aufnahmen) nicht ausgecheckt, wird ausgescort: Jeder wirft noch 3 Darts, und wer dabei mehr Punkte erzielt, gewinnt das Leg. Bei Gleichstand wird der Ausscore wiederholt.</li>
+<li><b>Anwurf:</b> In den Gruppenspielen hat der im Spielplan zuerst genannte Spieler den Anwurf im 1. Leg, danach wechselt er jedes Leg. Die Reihenfolge ist so verteilt, dass jeder Spieler gleich oft zuerst genannt wird.</li>
+<li><b>Punkte:</b> Sieg = 2 Punkte${fix2("g")?", Unentschieden = 1 Punkt":""}, Niederlage = 0.</li>
+<li><b>Tabellenrang:</b> Punkte, dann Leg-Differenz, dann gewonnene Legs, dann Ø-Average.</li>
+${(S.skip&&Object.keys(S.skip).length)?'<li><b>Spiele pro Spieler:</b> In größeren Gruppen entfallen einzelne Spiele, sodass alle gleich viele Gruppenspiele haben.</li>':""}
+<li><b>Halbfinale:</b> ${S.ng===2?"Die ersten Zwei jeder Gruppe, über Kreuz (A1 gegen B2, B1 gegen A2).":"Die drei Gruppensieger und der beste Zweite; Platz 1 gegen 4, Platz 2 gegen 3 nach Tabellenposition."}</li>
+<li><b>K.O.-Runde:</b> Halbfinale, Spiel um Platz 3 und Finale werden ohne Unentschieden gespielt.</li>
+<li><b>Boards:</b> Gespielt wird auf Board 1 und 2. Sobald ein Board frei ist, wird die nächste Partie aus der Warteschlange angesagt, damit möglichst niemand mehrere Spiele hintereinander hat.</li></ul></details>`;
+const wn=(r,a,b,st)=>done(r,st)?(r.a>r.b?a:b):null,ls=(r,a,b,st)=>done(r,st)?(r.a>r.b?b:a):null;
+function sched(){
+ const M=[];for(let g=0;g<S.ng;g++){const ps=inG(g);for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const [x,y]=ps[i].id<ps[j].id?[ps[i],ps[j]]:[ps[j],ps[i]];const k=x.id+"_"+y.id;if(!sk(k)){M.push({id:"g:"+k,a:x.id,b:y.id});if((S.extra||[]).includes(k))M.push({id:"g:"+k+"_r",a:x.id,b:y.id})}}}
+ const last={},cnt={},out=[];const rem=M.slice();
+ for(let pos=0;rem.length;pos++){let best=0,bs=null;
+  rem.forEach((m,i)=>{const ra=Math.min(6,pos-(last[m.a]??-9)),rb=Math.min(6,pos-(last[m.b]??-9));const sc=[Math.min(ra,rb),ra+rb,-(cnt[m.a]||0)-(cnt[m.b]||0)];
+   if(!bs||sc[0]>bs[0]||(sc[0]===bs[0]&&(sc[1]>bs[1]||(sc[1]===bs[1]&&sc[2]>bs[2])))){bs=sc;best=i}});
+  const m=rem.splice(best,1)[0];last[m.a]=pos;last[m.b]=pos;cnt[m.a]=(cnt[m.a]||0)+1;cnt[m.b]=(cnt[m.b]||0)+1;out.push(m)}
+ return out}
+function info(id){
+ const k=id.slice(2);
+ if(id[0]==="g"){const [a,b]=k.split("_").map(Number),x=P(a),y=P(b);if(!x||!y||x.g!==y.g||sk(k)||(k.slice(-2)==="_r"&&!(S.extra||[]).includes(a+"_"+b)))return null;return{id,p:oMap()[k]===y.id?[y,x]:[x,y],sw:oMap()[k]===y.id,r:S.res[k],store:"res",key:k,st:"g",label:"Gruppe "+L[x.g]+(k.slice(-2)==="_r"?" (Rückspiel)":"")}}
+ const K=S.ko||{},s=seeds();
+ if(k==="sf1")return{id,p:[s[0],s[1]],r:K.sf1,store:"ko",key:k,st:"s",label:"Halbfinale 1"};
+ if(k==="sf2")return{id,p:[s[2],s[3]],r:K.sf2,store:"ko",key:k,st:"s",label:"Halbfinale 2"};
+ if(k==="f")return{id,p:[wn(K.sf1,s[0],s[1],"s"),wn(K.sf2,s[2],s[3],"s")],r:K.f,store:"ko",key:k,st:"f",label:"Finale"};
+ return{id,p:[ls(K.sf1,s[0],s[1],"s"),ls(K.sf2,s[2],s[3],"s")],r:K.p3,store:"ko",key:"p3",st:"s",label:"Spiel um Platz 3"}}
+function sync(){S.boards=S.boards||[null,null];S.last=S.last||[null,null];
+ S.boards.forEach((id,i)=>{if(!id)return;const f=info(id);if(!f||!f.p[0]||!f.p[1]){S.boards[i]=null;return}if(done(f.r,f.st)&&f.r.x!=null&&f.r.y!=null){S.last[i]=id;S.boards[i]=null}})}
+function queue(){let q=sched().map(m=>m.id);if(allDone()&&S.players.length>=4)q=q.concat(["k:sf1","k:sf2","k:p3","k:f"]);
+ return q.filter(id=>{const f=info(id);return f&&f.p[0]&&f.p[1]&&!done(f.r,f.st)&&!S.boards.includes(id)})}
+function busy(ex){const b=new Set();S.boards.forEach((id,j)=>{if(id&&j!==ex){const f=info(id);if(f&&!done(f.r,f.st))f.p.forEach(p=>b.add(p.id))}});return b}
+function nextFor(i){const b=busy(i);return queue().find(id=>!info(id).p.some(p=>b.has(p.id)))||null}
+function freeBoard(i,next){sync();const id=S.boards[i];if(id){S.last[i]=id;S.boards[i]=null}if(next){const n=nextFor(i);if(n){S.boards[i]=n;S.t0=S.t0||Date.now()}}save();render()}
+function callNext(i){sync();if(S.boards[i])return;const id=nextFor(i);if(id){S.t0=S.t0||Date.now();S.boards[i]=id;save();render()}}
+function assign(i,id){sync();if(S.boards[i]||S.boards.includes(id))return;S.t0=S.t0||Date.now();S.boards[i]=id;save();render()}
+function tabP(){
+ sync();save();
+ const q=queue(),bs=busy(-1),sc=sched(),nd=sc.filter(m=>done(S.res[m.id.slice(2)],"g")).length;
+ const boards=[0,1].map(i=>{const id=S.boards[i];
+  if(id){const f=info(id);return `<div class="card"><h2>🎯 Board ${i+1} <span class="mu">· ${f.label} · ${modeTxt(f.st)}</span></h2><div class="call">${esc(f.p[0].name)} <span class="mu">gegen</span> ${esc(f.p[1].name)}</div>${matchRow(f.p[0].name,f.p[1].name,f.r,f.store,f.key,f.sw)}${done(f.r,f.st)?`<p class="wa" style="margin:8px 0">✔ Ergebnis gespeichert. Trage noch die Averages ein – sind beide eingetragen, wird das Board automatisch frei. Oder gib es sofort frei:</p><div class="row"><button class="b p" onclick="freeBoard(${i},true)">📣 Board freigeben &amp; nächste Partie</button><button class="b" onclick="freeBoard(${i},false)">Board freigeben</button></div>`:`<div style="margin-top:8px"><button class="b" onclick="S.boards[${i}]=null;save();render()">Partie zurück in die Warteschlange</button></div>`}</div>`}
+  const n=nextFor(i),f=n&&info(n),lf=S.last[i]&&info(S.last[i]);
+  return `<div class="card"><h2>Board ${i+1} <span style="color:var(--ac)">· frei ✅</span></h2>${lf&&done(lf.r,lf.st)?`<p class="mu">Zuletzt: ${esc(lf.p[0].name)} ${orient(lf).a}:${orient(lf).b} ${esc(lf.p[1].name)}</p>`:""}${f?`<p>Als Nächstes: <b>${esc(f.p[0].name)}</b> gegen <b>${esc(f.p[1].name)}</b> <span class="mu">(${f.label})</span></p><button class="b p" onclick="callNext(${i})">📣 Nächste Partie ansagen</button>`:`<p class="mu">Keine Partie verfügbar.</p>`}</div>`}).join("");
+ return `<div class="row" style="margin-bottom:10px"><button class="b" onclick="tvOn()">📺 TV-Ansicht</button><button class="b" onclick="openTv()">🖥 In neuem Fenster öffnen (2. Bildschirm)</button></div><p class="mu">Gruppenspiele gespielt: <b>${nd}/${sc.length}</b>. Sobald ein Ergebnis eingetragen ist, kannst du noch die Averages eintragen. Sind beide eingetragen, wird das Board automatisch frei (oder du gibst es per Button frei). Die Reihenfolge ist so gewählt, dass möglichst niemand zweimal hintereinander spielt. <b>Ausscore:</b> nach 60 Darts pro Spieler wirft jeder noch 3 Darts, wer mehr Punkte hat, gewinnt das Leg.</p><div class="grid">${boards}</div>
+ <div class="card"><h2>⏱ Wartezeiten <span class="mu">(am längsten wartend zuerst)</span></h2>${waitHtml()}</div>
+ <div class="card"><h2>Warteschlange <span class="mu">(${q.length} offen)</span></h2>${q.slice(0,14).map((id,n)=>{const f=info(id),bz=f.p.some(p=>bs.has(p.id));return `<div class="pl"><span class="mu" style="width:24px">${n+1}.</span><span class="nm">${esc(f.p[0].name)} – ${esc(f.p[1].name)} <span class="mu">${f.label}${bz?" · ⏳ spielt gerade":""}</span></span>${[0,1].filter(i=>!S.boards[i]).map(i=>`<button class="b" onclick="assign(${i},'${id}')">Board ${i+1}</button>`).join("")}</div>`}).join("")||'<p class="mu">Alle Spiele gespielt.</p>'}${q.length>14?`<p class="mu">… und ${q.length-14} weitere</p>`:""}</div>`}
+const sk=k=>(S.skip||{})[k];
+const toggleSkip=k=>{S.skip=S.skip||{};if(S.skip[k])delete S.skip[k];else S.skip[k]=1;save();render()};
+function cap4(){S.skip={};for(let g=0;g<S.ng;g++){let ps;for(let t=0;t<60;t++){ps=inG(g).slice();for(let q=ps.length-1;q>0;q--){const z=Math.floor(Math.random()*(q+1));[ps[q],ps[z]]=[ps[z],ps[q]]}if(ps.length!==6||[0,2,4].every(i=>{const k=Math.min(ps[i].id,ps[i+1].id)+"_"+Math.max(ps[i].id,ps[i+1].id);return !S.res[k]||S.res[k].a==null}))break}if(ps.length!==6)continue;for(let i=0;i<6;i+=2){const a=ps[i],b=ps[i+1];S.skip[Math.min(a.id,b.id)+"_"+Math.max(a.id,b.id)]=1}}save();render()}
+const matchList=ms=>{const po={};sched().forEach((m,i)=>po[m.id]=i+1);const act=ms.filter(([x,y])=>!sk(x.id+"_"+y.id)).sort(([a,b],[c,d])=>po["g:"+a.id+"_"+b.id]-po["g:"+c.id+"_"+d.id]),off=ms.filter(([x,y])=>sk(x.id+"_"+y.id));return (act.map(([x,y])=>{const k=x.id+"_"+y.id;return `<div class="mu" style="margin-top:8px">Spiel Nr. ${po["g:"+k]}</div>`+(oMap()[k]===y.id?matchRow(y.name,x.name,S.res[k],"res",k,1):matchRow(x.name,y.name,S.res[k],"res",k))+`<div style="text-align:right;margin:-2px 0 2px"><button class="x" style="font-size:12px" onclick="toggleSkip('${k}')">Spiel entfällt</button></div>`}).join("")||'<p class="mu">Keine Spiele.</p>')+off.map(([x,y])=>{const k=x.id+"_"+y.id;return `<div class="m mu">${esc(x.name)} – ${esc(y.name)}: entfällt <button class="b" style="padding:2px 8px" onclick="toggleSkip('${k}')">zurück</button></div>`}).join("")};
+const capBox=()=>{if(!S.players.length)return"";const six=[...Array(S.ng)].some((_,g)=>inG(g).length===6);const n=Object.keys(S.skip||{}).length;const four=[...Array(S.ng)].some((_,g)=>inG(g).length===4),ne=(S.extra||[]).length;if(!six&&!n&&!four&&!ne)return"";return `<div class="card"><div class="row"><b>Spiele pro Spieler</b>${four?`<button class="b" onclick="capExtra()">${ne?"🎲 Rückspiele neu würfeln":"4er-Gruppe: Zufalls-Rückspiele (je 4 Spiele)"}</button>`:""}${ne?`<button class="b" onclick="S.extra=[];save();render()">Rückspiele entfernen</button>`:""}${six?`<button class="b" onclick="cap4()">${n?"🎲 Neu zufällig begrenzen":"Auf 4 Spiele pro Spieler begrenzen"}</button>`:""}${n?`<button class="b" onclick="S.skip={};save();render()">Alle Spiele wiederherstellen (${n} gestrichen)</button>`:""}</div><p class="mu">Bei einer 6er-Gruppe fallen 3 Spiele weg, sodass jeder nur 4 Spiele hat. Einzelne Spiele kannst du bei den Spielen selbst streichen („Spiel entfällt“) oder wiederherstellen. In einer 4er-Gruppe spielen zwei zufällige Paare ein zweites Mal gegeneinander, damit jeder 4 Spiele hat.</p></div>`};
+const getM=st=>S["m"+st]||{bo:S.bo||3,x:S.x01||501};
+const fix2=st=>(st||"g")==="g"&&getM("g").bo===2;
+const need=st=>fix2(st)?2:(getM(st||"g").bo+1)/2;
+const stOf=(store,key)=>store==="res"?"g":key==="f"?"f":"s";
+const modeTxt=st=>{const m=getM(st),n=need(st);if(fix2(st))return `2 Legs fix · ${m.x} · Unentschieden möglich`;return `Best of ${m.bo} · ${m.x} · ${n} ${n===1?"Leg":"Legs"} zum Sieg`};
+function setM(st,k,v){S["m"+st]=Object.assign({},getM(st),{[k]:+v});save();render()}
+const modeRow=(st,l)=>{const m=getM(st);return `<div class="pl"><span class="nm"><b>${l}</b><br><span class="mu">${modeTxt(st)}</span></span><select onchange="setM('${st}','bo',this.value)">${(st==="g"?[1,2,3,5,7]:[1,3,5,7]).map(b=>`<option value="${b}" ${m.bo===b?"selected":""}>${b===2?"2 Legs fix (Unentschieden möglich)":"Best of "+b}</option>`).join("")}</select><select onchange="setM('${st}','x',this.value)">${[301,501].map(x=>`<option value="${x}" ${m.x===x?"selected":""}>${x}</option>`).join("")}</select></div>`};
+function rbtn(k,l){return pend===k?`<span class="row"><button class="b" style="color:var(--wa);border-color:var(--wa)" onclick="rst('${k}')">Wirklich löschen – nochmal klicken</button><button class="b" onclick="pend=null;render()">Abbrechen</button></span>`:`<button class="b" onclick="rst('${k}')">${l}</button>`}
+function rst(k){
+ if(pend!==k){pend=k;render();return}
+ pend=null;
+ if(k==="t"){S.players=[];S.res={};S.ko={};S.nid=1;S.skip={};S.extra=[];S.fin={};S.t0=null;S.boards=[null,null];S.last=[null,null]}
+ else if(k==="g"){S.res={};S.ko={};S.fin={};S.t0=null;S.boards=[null,null];S.last=[null,null]}
+ else if(k==="k"){S.ko={}}
+ save();render();
+}
+
+/* Ergebnisse */
+function upd0(store,key,f,v){
+ const o=S[store][key]=S[store][key]||{};
+ o[f]=(f==="a"||f==="b")?(num(v)===null?null:Math.min(need(stOf(store,key)),Math.max(0,Math.round(num(v))))):num(v);
+ save();render();
+}
+const done=(r,st)=>{if(!r||r.a==null||r.b==null)return false;if(fix2(st))return r.a+r.b===2;const n=need(st);return r.a!==r.b&&Math.max(r.a,r.b)===n&&Math.min(r.a,r.b)<n};
+
+function stand(g){
+ const ps=inG(g),T=ps.map(p=>({p,sp:0,w:0,d:0,l:0,lf:0,la:0,av:[]}));
+ for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){
+  const [x,y]=ps[i].id<ps[j].id?[ps[i],ps[j]]:[ps[j],ps[i]];
+  const k0=x.id+"_"+y.id,rl=[(S.skip||{})[k0]?null:S.res[k0],...((S.extra||[]).includes(k0)&&!(S.skip||{})[k0]?[S.res[k0+"_r"]]:[])];const tx=T.find(t=>t.p===x),ty=T.find(t=>t.p===y);
+  for(const r of rl){if(r&&r.x!=null)tx.av.push(r.x);if(r&&r.y!=null)ty.av.push(r.y);
+  if(!done(r))continue;
+  tx.lf+=r.a;tx.la+=r.b;ty.lf+=r.b;ty.la+=r.a;
+  if(r.a>r.b){tx.w++;tx.sp+=2;ty.l++}else if(r.a<r.b){ty.w++;ty.sp+=2;tx.l++}else{tx.d++;ty.d++;tx.sp++;ty.sp++}}
+ }
+ T.forEach(t=>{t.avg=t.av.length?t.av.reduce((a,b)=>a+b,0)/t.av.length:0;t.diff=t.lf-t.la});
+ return T.sort(cmp);
+}
+const cmp=(a,b)=>b.sp-a.sp||b.diff-a.diff||b.lf-a.lf||b.avg-a.avg;
+
+function allDone(){for(let g=0;g<S.ng;g++){const ps=inG(g);for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){
+ const [x,y]=ps[i].id<ps[j].id?[ps[i],ps[j]]:[ps[j],ps[i]];if(!S.skip?.[x.id+"_"+y.id]&&!done(S.res[x.id+"_"+y.id]))return false;if(!S.skip?.[x.id+"_"+y.id]&&(S.extra||[]).includes(x.id+"_"+y.id)&&!done(S.res[x.id+"_"+y.id+"_r"]))return false}}return true}
+
+function seeds(){ // liefert 4 Halbfinalisten
+ const st=[];for(let g=0;g<S.ng;g++)st.push(stand(g));
+ if(S.ng===2)return[st[0][0],st[1][1],st[1][0],st[0][1]].map(t=>t&&t.p);
+ const w=st.map(s=>s[0]).filter(Boolean).sort(cmp);
+ const sec=st.map(s=>s[1]).filter(Boolean).sort(cmp)[0];
+ const q=[...w,sec].filter(Boolean);
+ return[q[0],q[3],q[1],q[2]].map(t=>t&&t.p);
+}
+
+/* Views */
+function tabT(){
+ const n=S.players.length;
+ let h=`<div class="card"><h2>Teilnehmer (${n}/12)</h2>
+ <div class="row"><input id="nn" placeholder="Name eingeben" onkeydown="if(event.key==='Enter')addP()" style="flex:1;min-width:140px"><button class="b p" onclick="addP()">Hinzufügen</button></div>
+ ${n<8?`<p class="wa">Empfohlen: 8–12 Spieler (aktuell ${n}).</p>`:""}
+ <div style="margin-top:8px">${S.players.map(p=>`<div class="pl"><span class="nm">${esc(p.name)}</span>${n>=2?`<select onchange="setG(${p.id},this.value)">${[...Array(S.ng)].map((_,g)=>`<option value="${g}" ${p.g===g?"selected":""}>Gruppe ${L[g]}</option>`).join("")}</select>`:""}<button class="x" onclick="delP(${p.id})" title="Entfernen">✕</button></div>`).join("")||'<p class="mu">Noch keine Spieler.</p>'}</div></div>
+ <div class="card"><h2>Spielmodus</h2>${[["g","Gruppenphase"],["s","Halbfinale (und Platz 3)"],["f","Finale"]].map(([st,l])=>modeRow(st,l)).join("")}</div>
+ ${regeln()}
+ <div class="card"><h2>Gruppen</h2><div class="row">
+ <label>Anzahl Gruppen <select onchange="setNg(this.value)"><option value="2" ${S.ng===2?"selected":""}>2 Gruppen</option><option value="3" ${S.ng===3?"selected":""}>3 Gruppen</option></select></label>
+ <button class="b" onclick="autoG(true);save();render()">🎲 Zufällig auslosen</button></div>
+ <p class="mu">Bei 3 Gruppen kommen die drei Gruppensieger und der beste Zweite ins Halbfinale. Bei 2 Gruppen die jeweils Top 2 (über Kreuz). Empfehlung: 8–10 Spieler → 2 Gruppen, 11–12 → 2 oder 3 Gruppen.</p>
+ <div class="grid">${[...Array(S.ng)].map((_,g)=>`<div><b>Gruppe ${L[g]}</b> <span class="mu">(${inG(g).length})</span><br>${inG(g).map(p=>esc(p.name)).join(", ")||"–"}</div>`).join("")}</div></div>
+ ${backup()}
+ ${rbtn('t','🗑 Alles zurücksetzen (Spieler &amp; Ergebnisse)')}`;
+ return h;
+}
+function matchRow(n1,n2,r,store,key,hl){
+ r=r||{};const sw=!!hl;if(sw)r={...r,a:r.b,b:r.a,x:r.y,y:r.x};const F=f=>sw?{a:"b",b:"a",x:"y",y:"x"}[f]:f;const st=stOf(store,key);const w=done(r,st)?(r.a>r.b?1:r.a<r.b?2:0):0;
+ return `<div class="m"><div class="t"><div class="${w===1?"w":""}">${esc(n1)}</div>
+ <div><input class="n" inputmode="numeric" value="${r.a??""}" onchange="upd('${store}','${key}','${F("a")}',this.value)"> : <input class="n" inputmode="numeric" value="${r.b??""}" onchange="upd('${store}','${key}','${F("b")}',this.value)"></div>
+ <div class="${w===2?"w":""}">${esc(n2)}</div></div>
+ <div class="a"><input class="n" inputmode="decimal" placeholder="Ø" value="${r.x??""}" onchange="upd('${store}','${key}','${F("x")}',this.value)"><span>Legs · Average</span><input class="n" inputmode="decimal" placeholder="Ø" value="${r.y??""}" onchange="upd('${store}','${key}','${F("y")}',this.value)"></div>${r.a!=null&&r.b!=null&&!done(r,st)?`<div class="wa" style="text-align:center;margin-top:4px">${fix2(st)?"Bei 2 Legs fix muss die Summe 2 ergeben (2:0, 1:1 oder 0:2).":`Unentschieden gibt es nicht: Der Sieger braucht genau ${need(st)} Leg${need(st)===1?"":"s"}, der Verlierer weniger.`}</div>`:""}</div>`;
+}
+function tabG(){
+ if(S.players.length<3)return`<div class="card">Bitte zuerst mindestens 3 Teilnehmer anlegen.</div>`;
+ let h="";
+ for(let g=0;g<S.ng;g++){
+  const ps=inG(g),T=stand(g),ms=[];
+  for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){
+   const [x,y]=ps[i].id<ps[j].id?[ps[i],ps[j]]:[ps[j],ps[i]];ms.push([x,y]);if((S.extra||[]).includes(x.id+"_"+y.id))ms.push([x,y,"_r"])}
+  const q=S.ng===2?2:1;
+  h+=`<div class="card"><h2>Gruppe ${L[g]}</h2><div class="sc"><table><tr><th>#</th><th class="l">Spieler</th><th>Sp</th><th>S</th>${fix2("g")?"<th>U</th>":""}<th>N</th><th>Legs</th><th>Diff</th><th>Ø</th><th>Pkt</th></tr>
+  ${T.map((t,i)=>`<tr class="${i<q?"q":""}"><td>${i+1}</td><td class="l">${esc(t.p.name)}</td><td>${t.w+t.d+t.l}</td><td>${t.w}</td>${fix2("g")?`<td>${t.d}</td>`:""}<td>${t.l}</td><td>${t.lf}:${t.la}</td><td>${t.diff>0?"+":""}${t.diff}</td><td>${t.avg?t.avg.toFixed(2):"–"}</td><td><b>${t.sp}</b></td></tr>`).join("")}</table></div>
+  <h2 style="margin-top:14px">Spiele</h2>${matchList2(ms)}</div>`;
+ }
+ return`<p class="mu"><b>${modeTxt("g")}</b> · Sieg = 2 Pkt${fix2("g")?", Unentschieden = 1 Pkt":""}. Rangfolge: Punkte, Leg-Differenz, gewonnene Legs, Average. Grün = qualifiziert.</p>${capBox()}<div class="grid g2">${h}</div><div style="margin-top:14px">${rbtn('g','🗑 Gruppenergebnisse zurücksetzen')}<p class="mu">Setzt auch die K.O.-Runde zurück, da sie auf den Gruppen basiert. Spieler bleiben erhalten.</p></div>`;
+}
+function tabK(){
+ if(S.players.length<4)return`<div class="card">Für die K.O.-Runde werden mindestens 4 Spieler benötigt.</div>`;
+ const s=seeds(),nm=p=>p?p.name:"?";
+ const win=(r,a,b,st)=>done(r,st)?(r.a>r.b?a:b):null;
+ const los=(r,a,b,st)=>done(r,st)?(r.a>r.b?b:a):null;
+ const r1=S.ko.sf1,r2=S.ko.sf2;
+ const f1=win(r1,s[0],s[1],"s"),f2=win(r2,s[2],s[3],"s"),l1=los(r1,s[0],s[1],"s"),l2=los(r2,s[2],s[3],"s");
+ const rf=S.ko.f,rp=S.ko.p3,ch=win(rf,f1,f2,"f");
+ return `${allDone()?"":'<p class="wa">⚠ Gruppenphase noch nicht abgeschlossen – die Paarungen sind vorläufig.</p>'}
+ <div class="grid"><div class="card ko"><h3>Halbfinale 1 <span class="mu" style="text-transform:none;letter-spacing:0">· ${modeTxt("s")}</span></h3>${matchRow(nm(s[0]),nm(s[1]),r1,"ko","sf1")}</div>
+ <div class="card ko"><h3>Halbfinale 2 <span class="mu" style="text-transform:none;letter-spacing:0">· ${modeTxt("s")}</span></h3>${matchRow(nm(s[2]),nm(s[3]),r2,"ko","sf2")}</div></div>
+ <div class="card ko"><h3>Finale <span class="mu" style="text-transform:none;letter-spacing:0">· ${modeTxt("f")}</span></h3>${matchRow(nm(f1),nm(f2),rf,"ko","f")}</div>
+ <div class="card ko"><h3>Spiel um Platz 3 <span class="mu" style="text-transform:none;letter-spacing:0">· ${modeTxt("s")}</span></h3>${matchRow(nm(l1),nm(l2),rp,"ko","p3")}</div>
+ ${ch?`<div class="card champ">🏆 Turniersieger<b>${esc(ch.name)}</b></div>`:""}
+ ${rbtn('k','🗑 K.O.-Ergebnisse zurücksetzen')}`;
+}
+function render(){const h1=document.getElementById("tph1");h1.style.display=TV?"none":"";document.getElementById("tpintro").style.display=TV?"none":"";document.querySelector("#tp .promo").style.display=TV?"none":"";document.body.classList.toggle("tv",TV);if(TV){renderTv();return}
+ const tabs=[["t","Teilnehmer"],["g","Gruppenphase"],["p","Boards"],["k","K.O.-Runde"],["s","Statistik"]];
+ document.getElementById("tpnav").innerHTML=tabs.map(([k,n])=>`<button class="${S.tab===k?"on":""}" onclick="pend=null;S.tab='${k}';save();render()">${n}</button>`).join("");
+ document.getElementById("mn").style.maxWidth=S.tab==="g"?"1400px":"900px";
+ document.getElementById("v").innerHTML=S.tab==="t"?tabT():S.tab==="g"?tabG():S.tab==="p"?tabP():S.tab==="s"?tabS2():tabK();
+}
+render();
+
+</script>
+{% endraw %}
