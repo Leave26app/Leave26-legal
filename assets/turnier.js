@@ -27,7 +27,15 @@ var EN = {
   "Wenn mindestens ein Spieler als anwesend markiert ist, werden beim Start nur anwesende Spieler ausgelost.": "If at least one player is checked in, only checked-in players are drawn at the start.",
   "Turniername": "Tournament name", "z. B. Kneipenturnier November": "e.g. Pub tournament November",
   "Format": "Format",
-  "Gruppen + K.O.": "Groups + knockout", "K.O.": "Knockout", "Doppel-K.O.": "Double elimination", "Liga (jeder gegen jeden)": "League (round robin)",
+  "Gruppen + K.O.": "Groups + knockout", "K.O.": "Knockout", "Doppel-K.O.": "Double elimination", "Liga (jeder gegen jeden)": "League (round robin)", "Schweizer System": "Swiss system",
+  "Runden": "Rounds", "Danach K.O. für die Besten": "Then knockout for the best", "kein K.O.": "no knockout", "Top": "Top",
+  "Schweizer System: In jeder Runde spielen Spieler mit gleich vielen Punkten gegeneinander, niemand zweimal gegen denselben. Runde 1 wird ausgelost, jede weitere Runde entsteht aus der aktuellen Tabelle.": "Swiss system: each round pairs players with the same number of points, nobody plays the same opponent twice. Round 1 is drawn, every further round is paired from the current table.",
+  "Runde {0} wird ausgelost, sobald Runde {1} fertig ist.": "Round {0} is paired as soon as round {1} is finished.",
+  "Rang: Punkte, Buchholz (Punkte der Gegner), Leg-Differenz, gewonnene Legs, Ø-Average.": "Rank: points, Buchholz (opponents' points), leg difference, legs won, average.",
+  "Tabelle": "Table", "BH": "BH", "Freilos für {0} (2 Punkte)": "Bye for {0} (2 points)",
+  "Schweizer System braucht mindestens 4 Spieler.": "The Swiss system needs at least 4 players.",
+  "Schweizer-System-Runden noch nicht fertig – die K.O.-Paarungen stehen danach fest.": "Swiss rounds not finished – the knockout pairings follow afterwards.",
+  "Gruppen / Liga / Runden": "Groups / league / rounds",
   "Anzahl Gruppen": "Number of groups", "Weiter pro Gruppe": "Qualify per group",
   "Hin- und Rückspiel": "Home and away", "Spiel um Platz 3": "Third place match",
   "Spielmodus": "Match format", "Gruppen / Liga": "Groups / league", "K.O.-Runden": "Knockout rounds", "Finale": "Final",
@@ -110,6 +118,7 @@ function fresh() {
     v: 2, name: "", players: [], nid: 1,
     fmt: "groups", ng: 2, adv: 2, rr2: false, third: true,
     mg: { bo: 3, x: 501, fix2: false }, mk: { bo: 3, x: 501 }, mf: { bo: 5, x: 501 },
+    sr: 5, sko: 0,
     nb: 2, writer: false, auto: true, fee: 0, stake: false, cur: "CHF", extra: 0, house: 0, split: [50, 30, 20],
     started: false, draw: null, res: {}, board: {}, wr: {}, last: {}, wc: {}, fin: {}, defer: {}, t0: null, tab: "t"
   };
@@ -179,6 +188,75 @@ function groupMatches() {
   return out;
 }
 
+/* ---------- Schweizer System ---------- */
+function swissRounds() { return (S.draw && S.draw.swiss) || []; }
+function swissStand() {
+  var T = {};
+  S.draw.ids.forEach(function (id) { T[id] = { id: id, sp: 0, w: 0, d: 0, l: 0, lf: 0, la: 0, av: [], pts: 0, opp: [], bye: 0, first: 0 }; });
+  swissRounds().forEach(function (round, r) {
+    round.forEach(function (pr) {
+      var a = T[pr[0]];
+      if (pr[1] == null) { a.bye++; a.sp++; a.w++; a.pts += 2; return; }
+      var b = T[pr[1]], id = "s" + (r + 1) + "_" + pr[0] + "_" + pr[1], res = S.res[id];
+      a.opp.push(pr[1]); b.opp.push(pr[0]); a.first++;
+      if (!res) return;
+      if (res.a1 != null) a.av.push(res.a1);
+      if (res.a2 != null) b.av.push(res.a2);
+      if (!finished(res, "g")) return;
+      a.sp++; b.sp++; a.lf += res.la; a.la += res.lb; b.lf += res.lb; b.la += res.la;
+      if (res.la > res.lb) { a.w++; a.pts += 2; b.l++; } else if (res.lb > res.la) { b.w++; b.pts += 2; a.l++; } else { a.d++; b.d++; a.pts++; b.pts++; }
+    });
+  });
+  var rows = Object.keys(T).map(function (k) { return T[k]; });
+  rows.forEach(function (x) { x.bh = x.opp.reduce(function (s, o) { return s + T[o].pts; }, 0); x.diff = x.lf - x.la; x.avg = x.av.length ? x.av.reduce(function (s, v) { return s + v; }, 0) / x.av.length : 0; });
+  return rows.sort(function (a, b) { return b.pts - a.pts || b.bh - a.bh || b.diff - a.diff || b.lf - a.lf || b.avg - a.avg; });
+}
+function swissRoundDone(r) {
+  var round = swissRounds()[r]; if (!round) return false;
+  return round.every(function (pr) { return pr[1] == null || finished(S.res["s" + (r + 1) + "_" + pr[0] + "_" + pr[1]], "g"); });
+}
+function swissDone() {
+  if (S.fmt !== "swiss") return true;
+  var rs = swissRounds(); return rs.length >= S.sr && swissRoundDone(rs.length - 1);
+}
+// nächste Runde: gleich starke Spieler gegeneinander, keine Wiederholung, Freilos an den Schwächsten ohne Freilos
+function swissPair(rank) {
+  var ids = rank.map(function (x) { return x.id; }), info = {};
+  rank.forEach(function (x) { info[x.id] = x; });
+  var pairs = [], byePair = null;
+  if (ids.length % 2) {
+    var by = null;
+    for (var i = ids.length - 1; i >= 0; i--) if (!info[ids[i]].bye) { by = ids[i]; break; }
+    if (by == null) by = ids[ids.length - 1];
+    ids.splice(ids.indexOf(by), 1); byePair = [by, null];
+  }
+  var steps = 0;
+  function go(list, allowRe) {
+    if (!list.length) return [];
+    if (++steps > 200000) return null;
+    var a = list[0];
+    for (var j = 1; j < list.length; j++) {
+      var b = list[j];
+      if (!allowRe && info[a].opp.indexOf(b) >= 0) continue;
+      var rest = list.slice(1, j).concat(list.slice(j + 1)), sub = go(rest, allowRe);
+      if (sub) return [[a, b]].concat(sub);
+    }
+    return null;
+  }
+  var res = go(ids, false); if (!res) { steps = 0; res = go(ids, true); }
+  res.forEach(function (pr) { if (info[pr[0]].first > info[pr[1]].first) pr.reverse(); pairs.push(pr); });
+  if (byePair) pairs.push(byePair);
+  return pairs;
+}
+function swissNext() {
+  if (S.fmt !== "swiss" || !S.draw) return false;
+  var rs = swissRounds();
+  if (rs.length >= S.sr || !swissRoundDone(rs.length - 1)) return false;
+  rs.push(swissPair(swissStand()));
+  return true;
+}
+function stageDone() { return S.fmt === "swiss" ? swissDone() : groupsDone(); }
+
 function seedOrder(n) { var o = [1]; while (o.length < n) { var l = o.length * 2 + 1, nx = []; o.forEach(function (s) { nx.push(s, l - s); }); o = nx; } return o; }
 
 // Teilnehmer der 1. K.O.-Runde: [[a,b],...] (null = Freilos) plus Platzhalter-Texte
@@ -191,6 +269,10 @@ function koFirstRound() {
       var row = st[g][place];
       seeds.push(row ? row.id : null); ph.push(LETTERS[g] + (place + 1));
     });
+  } else if (S.fmt === "swiss") {
+    var top = swissStand().slice(0, S.sko);
+    seeds = []; ph = [];
+    for (var z = 0; z < S.sko; z++) { seeds.push(top[z] ? top[z].id : null); ph.push((z + 1) + ". " + t("Tabelle")); }
   } else { seeds = S.draw.seeds.slice(); ph = seeds.map(function () { return ""; }); }
   var N = pow2(seeds.length), ord = seedOrder(N), pairs = [];
   for (var i = 0; i < N / 2; i++) {
@@ -230,8 +312,16 @@ function build() {
             label: S.fmt === "league" ? t("Spielnr.") + " " + gm.no : t("Gruppe") + " " + LETTERS[gm.g] + (gm.back ? " · " + t("Rückspiel") : ""), order: order++ });
     });
   }
+  if (S.fmt === "swiss") {
+    swissRounds().forEach(function (round, r) {
+      round.forEach(function (pr, i) {
+        if (pr[1] == null) return;
+        add({ id: "s" + (r + 1) + "_" + pr[0] + "_" + pr[1], st: "g", sw: true, r: r + 1, p: [pr[0], pr[1]], label: t("Runde") + " " + (r + 1), order: (r + 1) * 100 + i });
+      });
+    });
+  }
   var k = 0;
-  if (S.fmt === "groups" || S.fmt === "ko") {
+  if (S.fmt === "groups" || S.fmt === "ko" || (S.fmt === "swiss" && S.sko >= 2)) {
     var r1 = koFirstRound(), N = r1.length * 2; k = Math.log2(N);
     for (var r = 1; r <= k; r++) {
       for (var i = 0; i < N / Math.pow(2, r); i++) {
@@ -285,7 +375,7 @@ function slot(src) {
   if (src.first) {
     var f = src.first;
     if (f.bye) return { ready: true, p: null, ph: t("Freilos") };
-    if (!groupsDone()) return { ready: false, p: null, ph: f.ph };
+    if (!stageDone()) return { ready: false, p: null, ph: f.ph };
     return { ready: true, p: f.p, ph: f.ph };
   }
   var id = src.w || src.l, r = resolve(id), m = B().byId[id];
@@ -359,6 +449,11 @@ function stats() {
 function places() {
   var b = B(), out = [];
   if (!S.started) return null;
+  if (S.fmt === "swiss" && S.sko < 2) {
+    if (!swissDone()) return null;
+    swissStand().slice(0, 4).forEach(function (x, i) { out.push({ from: i + 1, to: i + 1, ids: [x.id] }); });
+    return out;
+  }
   if (S.fmt === "league") {
     if (!b.list.every(function (m) { return resolve(m.id).done; })) return null;
     stand(0).slice(0, 4).forEach(function (x, i) { out.push({ from: i + 1, to: i + 1, ids: [x.id] }); });
@@ -469,6 +564,7 @@ function startDraw() {
   var err = null;
   if (ps.length < 2) err = t("Mindestens 2 Spieler nötig.");
   else if (S.fmt === "dko" && ps.length < 4) err = t("Doppel-K.O. braucht mindestens 4 Spieler.");
+  else if (S.fmt === "swiss" && ps.length < 4) err = t("Schweizer System braucht mindestens 4 Spieler.");
   else if (S.fmt === "groups" && ps.length < 4) err = t("Gruppen + K.O. braucht mindestens 4 Spieler.");
   else if (S.fmt === "groups" && ps.length < S.ng * 2) err = t("Zu viele Gruppen für so wenige Spieler.");
   UI.err.start = err; if (err) return;
@@ -476,6 +572,13 @@ function startDraw() {
   var d = { ids: ps.slice() };
   if (S.fmt === "groups") { d.groups = []; for (var g = 0; g < S.ng; g++) d.groups.push([]); ps.forEach(function (id, i) { d.groups[i % S.ng].push(id); }); }
   else if (S.fmt === "league") d.groups = [ps.slice()];
+  else if (S.fmt === "swiss") {
+    S.sr = Math.min(S.sr, ps.length - 1);
+    if (S.sko > ps.length) S.sko = ps.length >= 8 ? 8 : ps.length >= 4 ? 4 : 2;
+    var r1 = []; for (var q = 0; q + 1 < ps.length; q += 2) r1.push([ps[q], ps[q + 1]]);
+    if (ps.length % 2) r1.push([ps[ps.length - 1], null]);
+    d.swiss = [r1];
+  }
   else d.seeds = ps.slice();
   S.draw = d; S.started = true; S.res = {}; S.board = {}; S.wr = {}; S.last = {}; S.wc = {}; S.fin = {}; S.t0 = null; S.tab = "p";
   dirty(); syncBoards();
@@ -576,15 +679,16 @@ function viewSetup() {
   if (!locked) {
     h += '<div class="card"><h2>' + t("Format") + "</h2>" +
       '<div class="row"><label>' + t("Turniername") + ' <input data-set="name" value="' + esc(S.name) + '" placeholder="' + t("z. B. Kneipenturnier November") + '" maxlength="60"></label></div>' +
-      '<div class="seg">' + [["groups", t("Gruppen + K.O.")], ["ko", t("K.O.")], ["dko", t("Doppel-K.O.")], ["league", t("Liga (jeder gegen jeden)")]].map(function (o) {
+      '<div class="seg">' + [["groups", t("Gruppen + K.O.")], ["ko", t("K.O.")], ["dko", t("Doppel-K.O.")], ["league", t("Liga (jeder gegen jeden)")], ["swiss", t("Schweizer System")]].map(function (o) {
         return '<button class="b' + (S.fmt === o[0] ? " p" : "") + '" data-do="fmt" data-v="' + o[0] + '">' + o[1] + "</button>"; }).join("") + "</div>" +
       (S.fmt === "groups" ? '<div class="row"><label>' + t("Anzahl Gruppen") + " " + sel("ng", [1, 2, 3, 4, 5, 6, 7, 8].map(function (x) { return [x, x]; }), S.ng) + "</label><label>" + t("Weiter pro Gruppe") + " " + sel("adv", [1, 2, 3, 4].map(function (x) { return [x, x]; }), S.adv) + "</label></div>" : "") +
+      (S.fmt === "swiss" ? '<div class="row"><label>' + t("Runden") + " " + sel("sr", [3, 4, 5, 6, 7, 8, 9].map(function (x) { return [x, x]; }), S.sr) + "</label><label>" + t("Danach K.O. für die Besten") + " " + sel("sko", [[0, t("kein K.O.")], [2, t("Top") + " 2"], [4, t("Top") + " 4"], [8, t("Top") + " 8"], [16, t("Top") + " 16"]], S.sko) + "</label></div>" : "") +
       (S.fmt === "groups" || S.fmt === "league" ? '<label class="chk"><input type="checkbox" data-sb="rr2"' + (S.rr2 ? " checked" : "") + "> " + t("Hin- und Rückspiel") + "</label>" : "") +
       (S.fmt === "groups" || S.fmt === "ko" ? '<label class="chk"><input type="checkbox" data-sb="third"' + (S.third ? " checked" : "") + "> " + t("Spiel um Platz 3") + "</label>" : "") +
       '<p class="mu">' + rulesFmt() + "</p></div>";
     h += '<div class="card"><h2>' + t("Spielmodus") + "</h2>" +
-      (S.fmt === "groups" || S.fmt === "league" ? modeRow("g", t("Gruppen / Liga")) : "") +
-      (S.fmt !== "league" ? modeRow("k", t("K.O.-Runden")) + modeRow("f", t("Finale")) : "") + "</div>";
+      (S.fmt === "groups" || S.fmt === "league" || S.fmt === "swiss" ? modeRow("g", t("Gruppen / Liga / Runden")) : "") +
+      (S.fmt !== "league" && !(S.fmt === "swiss" && S.sko < 2) ? modeRow("k", t("K.O.-Runden")) + modeRow("f", t("Finale")) : "") + "</div>";
   }
   h += '<div class="card"><h2>' + t("Boards und Ablauf") + "</h2>" +
     '<div class="row"><label>' + t("Anzahl Boards") + " " + sel("nb", [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16].map(function (x) { return [x, x]; }), S.nb) + "</label></div>" +
@@ -624,11 +728,12 @@ function prizeResult() {
       return '<div class="pl"><span class="tn">' + (medal[r.place - 1] || r.place + ".") + '</span><span class="nm">' + (r.who || '<span class="mu">' + t("noch offen") + "</span>") + '</span><span class="mu">' + r.pct + ' %</span><b class="amt">' + money(r.shared != null ? r.shared : r.amount) + (r.shared != null ? ' <span class="mu">/ ' + (lang() === "en" ? "each" : "pro Kopf") + "</span>" : "") + "</b></div>";
     }).join("") + "</div>";
 }
-function fmtName(f) { return f === "groups" ? t("Gruppen + K.O.") : f === "ko" ? t("K.O.") : f === "dko" ? t("Doppel-K.O.") : t("Liga (jeder gegen jeden)"); }
+function fmtName(f) { return f === "groups" ? t("Gruppen + K.O.") : f === "ko" ? t("K.O.") : f === "dko" ? t("Doppel-K.O.") : f === "swiss" ? t("Schweizer System") : t("Liga (jeder gegen jeden)"); }
 function rulesFmt() {
   return S.fmt === "groups" ? t("Die Besten jeder Gruppe kommen in die K.O.-Runde, über Kreuz gesetzt (Gruppensieger gegen Zweite anderer Gruppen).")
     : S.fmt === "ko" ? t("K.O.: Wer verliert, scheidet aus. Freilose gehen an die ersten Plätze der Auslosung.")
     : S.fmt === "dko" ? t("Doppel-K.O.: Wer zweimal verliert, scheidet aus. Wer im Winner-Bracket verliert, spielt im Loser-Bracket weiter. Im Grand Final trifft der Sieger des Winner-Brackets auf den Sieger des Loser-Brackets (ein Spiel).")
+    : S.fmt === "swiss" ? t("Schweizer System: In jeder Runde spielen Spieler mit gleich vielen Punkten gegeneinander, niemand zweimal gegen denselben. Runde 1 wird ausgelost, jede weitere Runde entsteht aus der aktuellen Tabelle.")
     : t("Liga: Jeder spielt gegen jeden, die Tabelle entscheidet.");
 }
 function modeRow(k, label) {
@@ -684,10 +789,30 @@ function groupTable(g, tv) {
     }).join("") + "</table></div>";
 }
 
+function swissTable(tv, limit) {
+  var rows = swissStand(), q = S.sko >= 2 ? S.sko : 0, dr = fix2("g");
+  if (limit) rows = rows.slice(0, limit);
+  return '<div class="sc"><table><tr><th>#</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th>" + (tv ? "" : "<th>" + t("S") + "</th>" + (dr ? "<th>" + t("U") + "</th>" : "") + "<th>" + t("N") + "</th>") + "<th>" + t("Legs") + "</th>" + (tv ? "" : "<th>" + t("Diff") + "</th>") + "<th>" + t("BH") + "</th><th>" + t("Ø") + "</th><th>" + t("Pkt") + "</th></tr>" +
+    rows.map(function (x, i) {
+      return '<tr class="' + (i < q ? "q" : "") + '"><td>' + (i + 1) + '</td><td class="l">' + esc(nm(x.id)) + (x.bye ? ' <span class="mu">(F)</span>' : "") + "</td><td>" + x.sp + "</td>" + (tv ? "" : "<td>" + x.w + "</td>" + (dr ? "<td>" + x.d + "</td>" : "") + "<td>" + x.l + "</td>") + "<td>" + x.lf + ":" + x.la + "</td>" + (tv ? "" : "<td>" + (x.diff > 0 ? "+" : "") + x.diff + "</td>") + "<td>" + x.bh + "</td><td>" + (x.avg ? x.avg.toFixed(tv ? 1 : 2) : "–") + "</td><td><b>" + x.pts + "</b></td></tr>";
+    }).join("") + "</table></div>";
+}
+function viewSwiss() {
+  var rs = swissRounds(), h = "";
+  h += '<p class="mu"><b>' + modeTxt("g") + "</b> · " + t("Runde") + " " + rs.length + "/" + S.sr + ". " + t("Rang: Punkte, Buchholz (Punkte der Gegner), Leg-Differenz, gewonnene Legs, Ø-Average.") + (S.sko >= 2 ? " " + t("Grün = qualifiziert für die K.O.-Runde.") : "") + "</p>";
+  h += '<div class="card"><h2>' + t("Tabelle") + "</h2>" + swissTable() + "</div>";
+  if (rs.length < S.sr) h += '<p class="mu">' + t("Runde {0} wird ausgelost, sobald Runde {1} fertig ist.", rs.length + 1, rs.length) + "</p>";
+  for (var r = rs.length - 1; r >= 0; r--) {
+    h += '<details class="card"' + (r === rs.length - 1 ? " open" : "") + "><summary><b>" + t("Runde") + " " + (r + 1) + "</b>" + (swissRoundDone(r) ? ' <span class="mu">✓</span>' : "") + "</summary>" +
+      rs[r].map(function (pr) { return pr[1] == null ? '<p class="mu">' + t("Freilos für {0} (2 Punkte)", esc(nm(pr[0]))) + "</p>" : matchBox("s" + (r + 1) + "_" + pr[0] + "_" + pr[1]); }).join("") + "</details>";
+  }
+  return h;
+}
 function viewSchedule() {
   if (!S.started) return startHint();
   var b = B(), h = "";
-  var gm = b.list.filter(function (m) { return m.st === "g"; });
+  if (S.fmt === "swiss") h += viewSwiss();
+  var gm = b.list.filter(function (m) { return m.st === "g" && !m.sw; });
   if (gm.length) {
     var done = gm.filter(function (m) { return resolve(m.id).done; }).length;
     h += '<p class="mu"><b>' + modeTxt("g") + "</b> · " + done + "/" + gm.length + " " + t("gespielt") + ". " + t(fix2("g") ? "Punkte: Sieg 2, Unentschieden 1, Niederlage 0. Rang: Punkte, Leg-Differenz, gewonnene Legs, Ø-Average." : "Rang: Punkte, Leg-Differenz, gewonnene Legs, Ø-Average.") + (S.fmt === "groups" ? " " + t("Grün = qualifiziert für die K.O.-Runde.") : "") + "</p>";
@@ -698,7 +823,7 @@ function viewSchedule() {
   }
   var km = b.list.filter(function (m) { return m.st !== "g"; });
   if (km.length) {
-    if (!groupsDone()) h += '<p class="wa">' + t("Gruppenphase noch nicht fertig – die K.O.-Paarungen stehen danach fest.") + "</p>";
+    if (!stageDone()) h += '<p class="wa">' + t(S.fmt === "swiss" ? "Schweizer-System-Runden noch nicht fertig – die K.O.-Paarungen stehen danach fest." : "Gruppenphase noch nicht fertig – die K.O.-Paarungen stehen danach fest.") + "</p>";
     h += '<div class="card"><h2>' + t("K.O.-Runden") + ' <span class="mu">· ' + modeTxt("k") + " · " + t("Finale") + ": " + modeTxt("f") + "</span></h2>" +
       km.filter(function (m) { var r = resolve(m.id); return !(r.bye); }).map(function (m) { return matchBox(m.id); }).join("") + "</div>";
   }
@@ -723,9 +848,10 @@ function bracketCol(ids, title) {
 }
 function viewBracket() {
   if (!S.started) return startHint();
-  if (S.fmt === "league") return viewSchedule();
+  if (S.fmt === "league" || (S.fmt === "swiss" && S.sko < 2)) return viewSchedule();
   var b = B(), h = "";
-  if (!groupsDone()) h += '<p class="wa">' + t("Gruppenphase noch nicht fertig – die K.O.-Paarungen stehen danach fest.") + "</p>";
+  if (S.fmt === "swiss" && !swissDone()) h += '<p class="wa">' + t("Schweizer-System-Runden noch nicht fertig – die K.O.-Paarungen stehen danach fest.") + "</p>";
+  else if (!groupsDone()) h += '<p class="wa">' + t("Gruppenphase noch nicht fertig – die K.O.-Paarungen stehen danach fest.") + "</p>";
   var champ = podium();
   if (champ && champ[0] != null) h += '<div class="card champ">🏆 ' + t("Turniersieger") + "<b>" + esc(nm(champ[0])) + "</b></div>";
   if (S.fmt === "dko") {
@@ -822,7 +948,9 @@ function viewTv() {
   h += '<div class="grid"><div class="card"><h2>' + t("Nächste Spiele") + "</h2>" + (q.map(function (id, n) { var p = players(id); return '<div class="pl"><span class="mu tn">' + (n + 1) + '.</span><span class="nm">' + esc(nm(p[0])) + " – " + esc(nm(p[1])) + ' <span class="mu">' + esc(B().byId[id].label) + (bs[p[0]] || bs[p[1]] ? " · ⏳" : "") + "</span></span></div>"; }).join("") || '<p class="mu">' + t(podium() ? "Alle Spiele gespielt." : "Gerade ist kein Spiel bereit. Die nächsten Paarungen ergeben sich aus den laufenden Spielen.") + "</p>") + "</div>" +
     '<div class="card"><h2>' + t("Top Average") + "</h2>" + (T.map(function (s, i) { return '<div class="pl"><span class="mu tn">' + (i + 1) + '.</span><span class="nm">' + esc(nm(s.id)) + "</span><b>" + s.avg.toFixed(2) + "</b></div>"; }).join("") || '<p class="mu">' + t("Noch keine Averages.") + "</p>") + "</div>" +
     '<div class="card"><h2>⏱ ' + t("Wartezeiten") + "</h2>" + waitHtml(6) + "</div></div>";
-  if (S.draw.groups && !(S.fmt === "groups" && groupsDone())) h += '<div class="grid g2">' + S.draw.groups.map(function (_, g) { return '<div class="card"><h2>' + (S.fmt === "league" ? "Liga" : t("Gruppe") + " " + LETTERS[g]) + "</h2>" + groupTable(g, true) + "</div>"; }).join("") + "</div>";
+  if (S.fmt === "swiss" && (!swissDone() || S.sko < 2)) h += '<div class="card"><h2>' + t("Tabelle") + " · " + t("Runde") + " " + swissRounds().length + "/" + S.sr + "</h2>" + swissTable(true, 12) + "</div>";
+  else if (S.fmt === "swiss") h += viewBracket().replace(/<div class="card champ">[\s\S]*?<\/b><\/div>/, "");
+  else if (S.draw.groups && !(S.fmt === "groups" && groupsDone())) h += '<div class="grid g2">' + S.draw.groups.map(function (_, g) { return '<div class="card"><h2>' + (S.fmt === "league" ? "Liga" : t("Gruppe") + " " + LETTERS[g]) + "</h2>" + groupTable(g, true) + "</div>"; }).join("") + "</div>";
   else if (S.fmt !== "league") h += viewBracket().replace(/<div class="card champ">[\s\S]*?<\/b><\/div>/, "");
   h += '<div class="tvbrand">' + (QR ? '<img src="' + QR + '" alt="QR" width="120" height="120">' : "") + '<div><div class="tvwm">LEAVE<b>26</b></div><div>' + t("Mit Leave26 geplant. Checkouts sammeln, 180er zählen, mit Freunden vergleichen.") + '</div><div class="mu">' + t("Gratis im Google Play Store – QR-Code scannen") + "</div></div></div>";
   return h;
@@ -832,7 +960,7 @@ function viewTv() {
 var TABS = [["t", "Teilnehmer"], ["g", "Spielplan"], ["p", "Boards"], ["k", "Turnierbaum"], ["s", "Statistik"]];
 function render() {
   dirty();
-  if (S.started) { syncBoards(); dirty(); save(); }
+  if (S.started) { while (swissNext()) dirty(); dirty(); syncBoards(); dirty(); save(); }
   document.body.classList.toggle("tv", UI.tv);
   var intro = document.getElementById("tp-intro");
   var h1 = document.getElementById("tp-h1");
@@ -840,7 +968,7 @@ function render() {
   if (intro) { intro.textContent = t("Plane dein lokales Dartturnier kostenlos: Teilnehmer eintragen, auslosen, Spiele auf die Boards verteilen und alles live auf dem TV zeigen. Alles bleibt in deinem Browser gespeichert."); }
   var nav = document.getElementById("tp-nav"), view = document.getElementById("tp-view");
   if (UI.tv) { nav.innerHTML = ""; view.innerHTML = viewTv(); return; }
-  var tabs = TABS.filter(function (x) { return !(x[0] === "k" && S.fmt === "league"); });
+  var tabs = TABS.filter(function (x) { return !(x[0] === "k" && (S.fmt === "league" || (S.fmt === "swiss" && S.sko < 2))); });
   nav.innerHTML = tabs.map(function (x) { return '<button class="' + (S.tab === x[0] ? "on" : "") + '" data-do="tab" data-v="' + x[0] + '">' + t(x[1]) + "</button>"; }).join("");
   view.innerHTML = S.tab === "t" ? viewSetup() : S.tab === "g" ? viewSchedule() : S.tab === "p" ? viewBoards() : S.tab === "k" ? viewBracket() : viewStats();
 }
@@ -852,7 +980,7 @@ function setOpt(k, v) {
   if (k === "house") { S.house = Math.min(100, Math.max(0, num(v) || 0)); return; }
   if (k === "cur") { S.cur = String(v).trim().slice(0, 4); return; }
   if (k === "name") { S.name = String(v).slice(0, 60); return; }
-  if (k === "ng" || k === "adv" || k === "nb") { S[k] = +v; return; }
+  if (k === "ng" || k === "adv" || k === "nb" || k === "sr" || k === "sko") { S[k] = +v; return; }
   var mk = k.split("_");
   if (mk[0] === "bo") { var m = mk[1] === "g" ? S.mg : mk[1] === "f" ? S.mf : S.mk; if (v === "fix2") { m.fix2 = true; m.bo = 3; } else { m.fix2 = false; m.bo = +v; } return; }
   if (mk[0] === "x") { (mk[1] === "g" ? S.mg : mk[1] === "f" ? S.mf : S.mk).x = +v; }
