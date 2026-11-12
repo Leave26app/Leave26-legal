@@ -87,6 +87,8 @@ var EN = {
   "In neuem Fenster öffnen (2. Bildschirm)": "Open in a new window (second screen)",
   "Statistik pro Spiel ist freiwillig. Ø, 180er, High Finish und bestes Leg fliessen in die Auswertung ein.": "Per-match stats are optional. Avg, 180s, high finish and best leg feed into the stats.",
   "Kürzel": "Short", "Unentschieden": "Draw",
+  "Beispielturnier laden": "Load example tournament",
+  "Lädt ein Beispiel mit 12 Spielern, fertiger Gruppenphase und laufender K.O.-Runde. Der aktuelle Stand wird ersetzt.": "Loads an example with 12 players, a finished group stage and a running knockout stage. Replaces the current state.",
   "Diese Option gibt es nur in der Gruppenphase.": "This option is only available in the group stage."
 };
 function lang() { return document.documentElement.lang === "en" ? "en" : "de"; }
@@ -458,6 +460,42 @@ function saveResult(id, form) {
   return true;
 }
 
+
+/* ---------- Beispielturnier ---------- */
+function loadDemo() {
+  var en = lang() === "en";
+  S = fresh();
+  S.name = en ? "Pub tournament (example)" : "Kneipenturnier (Beispiel)";
+  ["Anna", "Ben", "Chris", "Dana", "Eli", "Finn", "Gina", "Hugo", "Ida", "Jan", "Kim", "Lea"].forEach(function (n, i) {
+    addPlayer(n); var p = S.players[S.players.length - 1]; p.here = true; p.paid = i < 10;
+  });
+  S.fee = 10; S.nb = 3; S.writer = true; S.fmt = "groups"; S.ng = 2; S.adv = 4;
+  startDraw();
+  S.board = {}; S.wr = {}; S.wc = {};
+  var skill = {}; S.players.forEach(function (p) { skill[p.id] = 45 + Math.random() * 32; });
+  var clock = Date.now() - 95 * 60000, koDone = 0;
+  S.t0 = clock;
+  for (var guard = 0; guard < 200; guard++) {
+    dirty();
+    var q = queue(); if (!q.length) break;
+    var id = q[0], m = B().byId[id];
+    if (m.st !== "g") { if (koDone >= 2) break; koDone++; }
+    var p = players(id), n = need(m.st);
+    var aWins = skill[p[0]] + Math.random() * 14 > skill[p[1]] + Math.random() * 14;
+    var lo = Math.floor(Math.random() * n);
+    var av = function (x) { return Math.round((skill[x] + (Math.random() * 10 - 5)) * 100) / 100; };
+    var r = { la: aWins ? n : lo, lb: aWins ? lo : n, a1: av(p[0]), a2: av(p[1]),
+      o1: Math.random() < 0.3 ? 1 + (Math.random() < 0.2 ? 1 : 0) : 0, o2: Math.random() < 0.3 ? 1 : 0,
+      h1: Math.random() < 0.25 ? 100 + Math.floor(Math.random() * 61) : null, h2: Math.random() < 0.2 ? 100 + Math.floor(Math.random() * 61) : null,
+      b1: 12 + Math.floor(Math.random() * 12), b2: 13 + Math.floor(Math.random() * 12) };
+    S.res[id] = r;
+    clock += 6 * 60000; S.fin[p[0]] = clock; S.fin[p[1]] = clock - 60000;
+  }
+  dirty();
+  for (var b = 0; b < S.nb; b++) callNext(b), dirty();
+  S.tab = "p";
+}
+
 /* ---------- Ansichten ---------- */
 function sel(name, opts, cur) {
   return '<select data-set="' + name + '">' + opts.map(function (o) { return '<option value="' + o[0] + '"' + (String(o[0]) === String(cur) ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select>";
@@ -513,7 +551,7 @@ function viewSetup() {
     '<p class="mu">' + t("Der Verlierer des letzten Spiels am Board schreibt das nächste Spiel. Ist er selbst dran, übernimmt ein anderer freier Spieler.") + "</p></div>";
   if (!locked) h += (UI.err.start ? '<p class="wa">' + esc(UI.err.start) + "</p>" : "") + '<button class="b p big-btn" data-do="start">🎯 ' + t("Auslosen und starten") + "</button>";
   h += backupCard();
-  h += '<div class="danger">' + confirmBtn("all", "🗑 " + t("Alles löschen")) + "</div>";
+  h += '<div class="danger row">' + (S.started || S.players.length ? confirmBtn("demo", "🎲 " + t("Beispielturnier laden")) : '<button class="b" data-do="demo">🎲 ' + t("Beispielturnier laden") + "</button>") + confirmBtn("all", "🗑 " + t("Alles löschen")) + '</div><p class="mu">' + t("Lädt ein Beispiel mit 12 Spielern, fertiger Gruppenphase und laufender K.O.-Runde. Der aktuelle Stand wird ersetzt.") + "</p>";
   return h;
 }
 function fmtName(f) { return f === "groups" ? t("Gruppen + K.O.") : f === "ko" ? t("K.O.") : f === "dko" ? t("Doppel-K.O.") : t("Liga (jeder gegen jeden)"); }
@@ -675,7 +713,7 @@ function viewBoards() {
       for (var b2 = 0; b2 < S.nb; b2++) if (!S.board[b2]) free.push(b2);
       return '<div class="pl"><span class="mu tn">' + (n + 1) + '.</span><span class="nm">' + esc(nm(p[0])) + " – " + esc(nm(p[1])) + ' <span class="mu">' + esc(B().byId[id].label) + (bz ? " · ⏳ " + t("spielt gerade") : "") + "</span></span>" +
         (bz ? "" : free.slice(0, 3).map(function (fb) { return '<button class="b sm" data-do="assign" data-b="' + fb + '" data-id="' + id + '">' + t("Board") + " " + (fb + 1) + "</button>"; }).join("")) + "</div>";
-    }).join("") || '<p class="mu">' + t("Alle Spiele gespielt.") + "</p>") + "</div></div>";
+    }).join("") || '<p class="mu">' + t(podium() ? "Alle Spiele gespielt." : "Gerade ist kein Spiel bereit. Die nächsten Paarungen ergeben sich aus den laufenden Spielen.") + "</p>") + "</div></div>";
   h += '<details class="card"><summary><b>' + t("Regeln") + '</b></summary><ul class="rules"><li>' + rulesFmt() + "</li><li>" + t("Ausscore: Ist ein Leg nach 20 Aufnahmen nicht beendet, wirft jeder noch 3 Darts. Mehr Punkte gewinnt das Leg.") + "</li>" + (S.writer ? "<li>" + t("Der Verlierer des letzten Spiels am Board schreibt das nächste Spiel. Ist er selbst dran, übernimmt ein anderer freier Spieler.") + "</li>" : "") + "</ul></details>";
   return h;
 }
@@ -710,7 +748,7 @@ function viewTv() {
   h += '<div class="grid tvboards">'; for (var b = 0; b < S.nb; b++) h += boardCard(b, true); h += "</div>";
   var q = queue().slice(0, 6), bs = busy(-1);
   var T = stats().filter(function (s) { return s.avg != null; }).sort(function (a, b) { return b.avg - a.avg; }).slice(0, 5);
-  h += '<div class="grid"><div class="card"><h2>' + t("Nächste Spiele") + "</h2>" + (q.map(function (id, n) { var p = players(id); return '<div class="pl"><span class="mu tn">' + (n + 1) + '.</span><span class="nm">' + esc(nm(p[0])) + " – " + esc(nm(p[1])) + ' <span class="mu">' + esc(B().byId[id].label) + (bs[p[0]] || bs[p[1]] ? " · ⏳" : "") + "</span></span></div>"; }).join("") || '<p class="mu">' + t("Alle Spiele gespielt.") + "</p>") + "</div>" +
+  h += '<div class="grid"><div class="card"><h2>' + t("Nächste Spiele") + "</h2>" + (q.map(function (id, n) { var p = players(id); return '<div class="pl"><span class="mu tn">' + (n + 1) + '.</span><span class="nm">' + esc(nm(p[0])) + " – " + esc(nm(p[1])) + ' <span class="mu">' + esc(B().byId[id].label) + (bs[p[0]] || bs[p[1]] ? " · ⏳" : "") + "</span></span></div>"; }).join("") || '<p class="mu">' + t(podium() ? "Alle Spiele gespielt." : "Gerade ist kein Spiel bereit. Die nächsten Paarungen ergeben sich aus den laufenden Spielen.") + "</p>") + "</div>" +
     '<div class="card"><h2>' + t("Top Average") + "</h2>" + (T.map(function (s, i) { return '<div class="pl"><span class="mu tn">' + (i + 1) + '.</span><span class="nm">' + esc(nm(s.id)) + "</span><b>" + s.avg.toFixed(2) + "</b></div>"; }).join("") || '<p class="mu">' + t("Noch keine Averages.") + "</p>") + "</div>" +
     '<div class="card"><h2>⏱ ' + t("Wartezeiten") + "</h2>" + waitHtml(6) + "</div></div>";
   if (S.draw.groups && !(S.fmt === "groups" && groupsDone())) h += '<div class="grid g2">' + S.draw.groups.map(function (_, g) { return '<div class="card"><h2>' + (S.fmt === "league" ? "Liga" : t("Gruppe") + " " + LETTERS[g]) + "</h2>" + groupTable(g, true) + "</div>"; }).join("") + "</div>";
@@ -764,8 +802,10 @@ root.addEventListener("click", function (e) {
       UI.pend = null;
       if (k === "reset") { resetTournament(); S.tab = "t"; }
       if (k === "all") { S = fresh(); UI.backup = ""; }
+      if (k === "demo") loadDemo();
       break;
     case "unpend": UI.pend = null; break;
+    case "demo": loadDemo(); break;
     case "edit": UI.edit = id; break;
     case "cancel": UI.edit = null; break;
     case "call": callNext(+bi); break;
@@ -809,5 +849,6 @@ window.addEventListener("storage", function (e) { if (e.key === KEY && e.newValu
 document.addEventListener("l26:lang", function () { render(); });
 setInterval(function () { root.querySelectorAll("[data-w]").forEach(function (el) { var ts = +el.getAttribute("data-w"); if (ts) el.textContent = fmtTime(ts); }); }, 1000);
 
+if (root.getAttribute("data-demo") === "auto" && !S.started && !S.players.length) { loadDemo(); dirty(); save(); }
 render();
 })();
