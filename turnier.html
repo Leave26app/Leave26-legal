@@ -1,0 +1,20 @@
+---
+layout: default
+title: Tournament planner
+title_de: Turnier-Planer
+description: Kostenloser Dartturnier-Planer von Leave26 – Gruppen, K.O., Doppel-K.O., Liga, Boards, Schreiber und TV-Ansicht für lokale Turniere.
+permalink: /turnier/
+---
+<link rel="stylesheet" href="{{ '/assets/turnier.css' | relative_url }}">
+<section id="tp" data-qr="{{ '/assets/img/play-qr.svg' | relative_url }}">
+  <h1 id="tp-h1">Turnier-Planer</h1>
+  <p class="intro" id="tp-intro">Plane dein lokales Dartturnier kostenlos.</p>
+  <nav id="tp-nav" aria-label="Turnier"></nav>
+  <div id="tp-view"></div>
+  <div class="card promo">
+    <img src="{{ '/assets/img/play-qr.svg' | relative_url }}" alt="QR-Code zu Leave26 im Play Store" width="72" height="72">
+    <div><b data-de="Leave26 für dein eigenes Training" data-en="Leave26 for your own practice">Leave26 für dein eigenes Training</b>
+      <div class="mu" data-de="Checkouts sammeln, 180er zählen und dich mit deinen Freunden vergleichen. Gratis im Google Play Store." data-en="Collect checkouts, count your 180s and compare with your friends. Free on Google Play.">Checkouts sammeln, 180er zählen und dich mit deinen Freunden vergleichen. Gratis im Google Play Store.</div></div>
+  </div>
+</section>
+<script src="{{ '/assets/turnier.js' | relative_url }}"></script>

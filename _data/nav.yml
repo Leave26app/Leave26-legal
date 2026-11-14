@@ -1,6 +1,9 @@
 - url: /
   de: Home
   en: Home
+- url: /turnier/
+  de: Turnier-Planer
+  en: Tournament
 - url: /privacy-policy/
   de: Datenschutz
   en: Privacy Policy
