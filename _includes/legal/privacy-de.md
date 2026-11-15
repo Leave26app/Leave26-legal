@@ -33,6 +33,8 @@ Dein Vorname kann einmalig als Standard-Anzeigename in deinem Leave26-Profil ver
 - Einträge im Checkout-Verlauf (Checkout-Zahl, Weg, Datum und Uhrzeit)
 - 180er-Zähler und 180er-Einträge mit Datum und Uhrzeit
 - persönliche Ziele
+- X01-Spiele (Aufnahmen, Legs, Average und weitere Spielstatistik mit Datum und Uhrzeit)
+- Trainingsergebnisse (Spiel, Ergebnis, Treffer, Datum und Uhrzeit)
 - Profileinstellungen (Anzeigename, gewählter Avatar)
 
 ### 3.3 Technische Daten
@@ -45,7 +47,7 @@ Zusätzlich speichert Leave26 eine Kopie deiner App-Daten auf deinem Gerät, dam
 
 Wenn du einen **Spielernamen** festlegst, wird er eindeutig gespeichert. Andere angemeldete Nutzer können prüfen, ob es einen Spielernamen gibt, aber nur, wenn sie ihn **genau kennen**. Eine Liste aller Namen gibt es nicht.
 
-Für Freunde wird ein **öffentliches Profil** angelegt mit: Spielername, Profilbild, Level, Rang, Anzahl 180er, Anzahl High Finishes, höchstes Finish und Anzahl geschaffter Checkouts. Dieses Profil sehen **nur Spieler, deren Freundschaftsanfrage du angenommen hast** (bzw. die deine angenommen haben). Dein Verlauf mit Datum und Uhrzeit, deine Wege und deine Ziele bleiben privat.
+Für Freunde wird ein **öffentliches Profil** angelegt mit: Spielername, Anzeigename, Profilbild, Level, Rang, Anzahl 180er, Anzahl High Finishes, höchstes Finish, Anzahl geschaffter Checkouts sowie die Werte der aktuellen Woche für die Wochen-Rangliste (Punkte, Anzahl Checkouts, High Finishes und 180er). Dieses Profil sehen **nur Spieler, deren Freundschaftsanfrage du angenommen hast** (bzw. die deine angenommen haben). Dein Verlauf mit Datum und Uhrzeit, deine Wege, deine Ziele, deine X01-Spiele und dein Training bleiben privat.
 
 Für Anfragen speichern wir, wer wen angefragt hat, den Status (offen oder angenommen) und die Spielernamen beider Seiten.
 

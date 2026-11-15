@@ -39,6 +39,8 @@ Your first name may be used once as the default display name in your Leave26 pro
 - checkout history entries (checkout number, route, date and time)
 - 180 counter and 180 entries with date and time
 - personal goals
+- X01 games (visits, legs, average and other match statistics with date and time)
+- training results (game, result, hits, date and time)
 - profile settings (display name, chosen avatar)
 
 ### 3.3 Technical data
@@ -53,7 +55,7 @@ Leave26 additionally keeps a copy of your app data on your device so the app wor
 
 If you set a **player name**, it is stored uniquely. Other signed-in users can check whether a player name exists, but only if they know it **exactly**. There is no list of all player names.
 
-For friends, a **public profile** is created containing: player name, profile picture, level, rank, number of 180s, number of high finishes, highest finish and number of completed checkouts. Only players whose friend request you accepted (or who accepted yours) can see this profile. Your history with date and time, your routes and your goals remain private.
+For friends, a **public profile** is created containing: player name, display name, profile picture, level, rank, number of 180s, number of high finishes, highest finish, number of completed checkouts and the current week's values for the weekly leaderboard (points, number of checkouts, high finishes and 180s). Only players whose friend request you accepted (or who accepted yours) can see this profile. Your history with date and time, your routes, your goals, your X01 games and your training remain private.
 
 For requests we store who requested whom, the status (pending or accepted) and both player names.
 

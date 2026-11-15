@@ -24,9 +24,9 @@ This page summarizes how Leave26 handles data. It corresponds to the information
 | Personal info → Email address | Yes | Account management | No (required for sign-in) |
 | Personal info → Name | Yes | Account management, app functionality | No (from Google account) |
 | Personal info → User IDs | Yes | Account management | No |
-| App activity → Other user-generated content (checkouts, routes, 180s, goals) | Yes | App functionality | No |
+| App activity → Other user-generated content (checkouts, routes, 180s, goals, X01 games, training) | Yes | App functionality | No |
 
-With a player name, confirmed friends can see a public profile (player name, profile picture, level, rank and key figures). This only happens through your own action and is not "sharing" in the sense of Google Play.
+With a player name, confirmed friends can see a public profile (player name, display name, profile picture, level, rank, key figures and weekly values for the leaderboard). This only happens through your own action and is not "sharing" in the sense of Google Play.
 
 All data is processed only to provide Leave26. Google Firebase processes it on our behalf as a service provider; this is not "sharing" in the sense of Google Play.
 
