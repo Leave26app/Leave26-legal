@@ -53,7 +53,7 @@ Leave26 additionally keeps a copy of your app data on your device so the app wor
 
 If you set a **player name**, it is stored uniquely. Other signed-in users can check whether a player name exists, but only if they know it **exactly**. There is no list of all player names.
 
-For friends, a **public profile** is created containing: player name, profile picture, level, rank, number of 180s, number of high finishes, highest finish and number of completed checkouts. Only players whose friend request you accepted (or who accepted yours) can see this profile. Your history with date and time, your routes and your goals remain private.
+For friends, a **public profile** is created containing: player name, display name, profile picture, level, rank, number of 180s, number of high finishes, highest finish and number of completed checkouts. Only players whose friend request you accepted (or who accepted yours) can see this profile. Your history with date and time, your routes and your goals remain private.
 
 For requests we store who requested whom, the status (pending or accepted) and both player names.
 

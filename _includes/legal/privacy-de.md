@@ -45,7 +45,7 @@ Zusätzlich speichert Leave26 eine Kopie deiner App-Daten auf deinem Gerät, dam
 
 Wenn du einen **Spielernamen** festlegst, wird er eindeutig gespeichert. Andere angemeldete Nutzer können prüfen, ob es einen Spielernamen gibt, aber nur, wenn sie ihn **genau kennen**. Eine Liste aller Namen gibt es nicht.
 
-Für Freunde wird ein **öffentliches Profil** angelegt mit: Spielername, Profilbild, Level, Rang, Anzahl 180er, Anzahl High Finishes, höchstes Finish und Anzahl geschaffter Checkouts. Dieses Profil sehen **nur Spieler, deren Freundschaftsanfrage du angenommen hast** (bzw. die deine angenommen haben). Dein Verlauf mit Datum und Uhrzeit, deine Wege und deine Ziele bleiben privat.
+Für Freunde wird ein **öffentliches Profil** angelegt mit: Spielername, Anzeigename, Profilbild, Level, Rang, Anzahl 180er, Anzahl High Finishes, höchstes Finish und Anzahl geschaffter Checkouts. Dieses Profil sehen **nur Spieler, deren Freundschaftsanfrage du angenommen hast** (bzw. die deine angenommen haben). Dein Verlauf mit Datum und Uhrzeit, deine Wege und deine Ziele bleiben privat.
 
 Für Anfragen speichern wir, wer wen angefragt hat, den Status (offen oder angenommen) und die Spielernamen beider Seiten.
 
