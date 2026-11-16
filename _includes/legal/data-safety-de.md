@@ -20,7 +20,7 @@ Diese Seite fasst zusammen, wie Leave26 mit Daten umgeht. Sie entspricht den Ang
 | Persönliche Daten → E-Mail-Adresse | Ja | Kontoverwaltung | Nein (für die Anmeldung nötig) |
 | Persönliche Daten → Name | Ja | Kontoverwaltung, App-Funktionen | Nein (aus dem Google-Konto) |
 | Persönliche Daten → Nutzer-IDs | Ja | Kontoverwaltung | Nein |
-| App-Aktivitäten → Andere von Nutzern erstellte Inhalte (Checkouts, Wege, 180er, Ziele, X01-Spiele, Training) | Ja | App-Funktionen | Nein |
+| App-Aktivitäten → Andere von Nutzern erstellte Inhalte (Checkouts, Wege, 180er, eigene Meilensteine, X01-Spiele, Training) | Ja | App-Funktionen | Nein |
 
 Mit einem Spielernamen sehen bestätigte Freunde ein öffentliches Profil (Spielername, Anzeigename, Profilbild, Level, Rang, Kennzahlen und Wochenwerte für die Rangliste). Das geschieht nur auf deine Aktion hin und gilt bei Google Play nicht als „Weitergabe“.
 

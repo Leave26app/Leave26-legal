@@ -13,7 +13,7 @@ The developer of Leave26 is responsible for the processing of your data:
 ## 2. Summary
 
 - You sign in with your **Google account**. Leave26 does not offer its own passwords.
-- Your dart progress (checkouts, history, 180s, goals, profile) is stored in your **personal cloud account** so it is available on all your devices.
+- Your dart progress (checkouts, history, 180s, own milestones, X01 games, training, profile) is stored in your **personal cloud account** so it is available on all your devices.
 - Leave26 uses **no advertising, no analytics and no tracking**.
 - Your data is **not sold** and not shared with advertisers or other third parties.
 - You can **delete your account and all data** at any time in the app or by request.
@@ -38,7 +38,7 @@ Your first name may be used once as the default display name in your Leave26 pro
 - completed checkouts
 - checkout history entries (checkout number, route, date and time)
 - 180 counter and 180 entries with date and time
-- personal goals
+- own milestones (personal goals)
 - X01 games (visits, legs, average and other match statistics with date and time)
 - training results (game, result, hits, date and time)
 - profile settings (display name, chosen avatar)
@@ -55,7 +55,7 @@ Leave26 additionally keeps a copy of your app data on your device so the app wor
 
 If you set a **player name**, it is stored uniquely. Other signed-in users can check whether a player name exists, but only if they know it **exactly**. There is no list of all player names.
 
-For friends, a **public profile** is created containing: player name, display name, profile picture, level, rank, number of 180s, number of high finishes, highest finish, number of completed checkouts and the current week's values for the weekly leaderboard (points, number of checkouts, high finishes and 180s). Only players whose friend request you accepted (or who accepted yours) can see this profile. Your history with date and time, your routes, your goals, your X01 games and your training remain private.
+For friends, a **public profile** is created containing: player name, display name, profile picture, level, rank, number of 180s, number of high finishes, highest finish, number of completed checkouts and the current week's values for the weekly leaderboard (points, number of checkouts, high finishes and 180s). Only players whose friend request you accepted (or who accepted yours) can see this profile. Your history with date and time, your routes, your own milestones, your X01 games and your training remain private.
 
 For requests we store who requested whom, the status (pending or accepted) and both player names.
 
@@ -65,7 +65,7 @@ We process your data only to:
 
 - create and manage your account and sign you in
 - store and synchronise your progress across devices
-- provide the app's features (statistics, levels, goals, friends)
+- provide the app's features (statistics, levels, milestones, friends)
 - keep the service secure and working
 
 Legal basis (where the EU/EEA GDPR applies): performance of the contract with you (Art. 6(1)(b) GDPR) and our legitimate interest in a secure, working service (Art. 6(1)(f) GDPR). For users in Switzerland the Swiss Federal Act on Data Protection (FADP) applies.
