@@ -9,7 +9,7 @@ Verantwortlich für die Bearbeitung deiner Daten ist der Entwickler von Leave26:
 ## 2. Das Wichtigste in Kürze
 
 - Du meldest dich mit deinem **Google-Konto** an. Leave26 hat keine eigenen Passwörter.
-- Dein Dart-Fortschritt (Checkouts, Verlauf, 180er, Ziele, Profil) wird in deinem **persönlichen Cloud-Konto** gespeichert, damit er auf all deinen Geräten verfügbar ist.
+- Dein Dart-Fortschritt (Checkouts, Verlauf, 180er, eigene Meilensteine, X01-Spiele, Training, Profil) wird in deinem **persönlichen Cloud-Konto** gespeichert, damit er auf all deinen Geräten verfügbar ist.
 - Leave26 verwendet **keine Werbung, keine Analyse-Tools und kein Tracking**.
 - Deine Daten werden **nicht verkauft** und nicht an Werbetreibende oder andere Dritte weitergegeben.
 - Du kannst **dein Konto und alle Daten** jederzeit in der App oder auf Anfrage **löschen**.
@@ -32,7 +32,9 @@ Dein Vorname kann einmalig als Standard-Anzeigename in deinem Leave26-Profil ver
 - geschaffte Checkouts
 - Einträge im Checkout-Verlauf (Checkout-Zahl, Weg, Datum und Uhrzeit)
 - 180er-Zähler und 180er-Einträge mit Datum und Uhrzeit
-- persönliche Ziele
+- eigene Meilensteine (persönliche Ziele)
+- X01-Spiele (Aufnahmen, Legs, Average und weitere Spielstatistik mit Datum und Uhrzeit)
+- Trainingsergebnisse (Spiel, Ergebnis, Treffer, Datum und Uhrzeit)
 - Profileinstellungen (Anzeigename, gewählter Avatar)
 
 ### 3.3 Technische Daten
@@ -45,7 +47,7 @@ Zusätzlich speichert Leave26 eine Kopie deiner App-Daten auf deinem Gerät, dam
 
 Wenn du einen **Spielernamen** festlegst, wird er eindeutig gespeichert. Andere angemeldete Nutzer können prüfen, ob es einen Spielernamen gibt, aber nur, wenn sie ihn **genau kennen**. Eine Liste aller Namen gibt es nicht.
 
-Für Freunde wird ein **öffentliches Profil** angelegt mit: Spielername, Anzeigename, Profilbild, Level, Rang, Anzahl 180er, Anzahl High Finishes, höchstes Finish und Anzahl geschaffter Checkouts. Dieses Profil sehen **nur Spieler, deren Freundschaftsanfrage du angenommen hast** (bzw. die deine angenommen haben). Dein Verlauf mit Datum und Uhrzeit, deine Wege und deine Ziele bleiben privat.
+Für Freunde wird ein **öffentliches Profil** angelegt mit: Spielername, Anzeigename, Profilbild, Level, Rang, Anzahl 180er, Anzahl High Finishes, höchstes Finish, Anzahl geschaffter Checkouts sowie die Werte der aktuellen Woche für die Wochen-Rangliste (Punkte, Anzahl Checkouts, High Finishes und 180er). Dieses Profil sehen **nur Spieler, deren Freundschaftsanfrage du angenommen hast** (bzw. die deine angenommen haben). Dein Verlauf mit Datum und Uhrzeit, deine Wege, deine eigenen Meilensteine, deine X01-Spiele und dein Training bleiben privat.
 
 Für Anfragen speichern wir, wer wen angefragt hat, den Status (offen oder angenommen) und die Spielernamen beider Seiten.
 
@@ -55,7 +57,7 @@ Wir bearbeiten deine Daten nur, um:
 
 - dein Konto zu erstellen, zu verwalten und dich anzumelden
 - deinen Fortschritt zu speichern und zwischen Geräten zu synchronisieren
-- die Funktionen der App bereitzustellen (Statistiken, Level, Ziele, Freunde)
+- die Funktionen der App bereitzustellen (Statistiken, Level, Meilensteine, Freunde)
 - den Dienst sicher und funktionsfähig zu halten
 
 Rechtsgrundlage (soweit die EU-DSGVO gilt): Erfüllung des Vertrags mit dir (Art. 6 Abs. 1 lit. b DSGVO) und unser berechtigtes Interesse an einem sicheren, funktionierenden Dienst (Art. 6 Abs. 1 lit. f DSGVO). Für Nutzerinnen und Nutzer in der Schweiz gilt das Bundesgesetz über den Datenschutz (DSG).

@@ -17,7 +17,7 @@ Wir löschen dein Konto innerhalb von **30 Tagen** und bestätigen dir die Lösc
 ## Was gelöscht wird
 
 - dein Leave26-Konto (Anmeldung mit Google)
-- alle App-Daten: Checkouts, Verlauf, Wege, 180er, Ziele, Profilname und Profilbild
+- alle App-Daten: Checkouts, Verlauf, Wege, 180er, eigene Meilensteine, X01-Spiele, Training, Profilname und Profilbild
 - Spielername, öffentliches Profil und alle Freundschaften
 
 Reste in technischen Backups unseres Dienstleisters (Google Firebase) werden nach dessen Aufbewahrungsfristen gelöscht. Dein Google-Konto selbst ist davon **nicht** betroffen.
