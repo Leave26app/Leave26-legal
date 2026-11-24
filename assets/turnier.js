@@ -513,7 +513,7 @@ function strength() {
   Object.keys(T).forEach(function (k) {
     var x = T[k], av = x.av.length ? x.av.reduce(function (s, v) { return s + v; }, 0) / x.av.length : base;
     av = (av * x.av.length + base) / (x.av.length + 1);           // wenige Werte: Richtung Durchschnitt ziehen
-    out[k] = av + (x.n ? 2.5 * x.ld / x.n * x.n / (x.n + 1) : 0);
+    out[k] = av + (x.n ? 2 * x.ld / x.n * x.n / (x.n + 1) : 0);
   });
   return out;
 }
@@ -524,7 +524,7 @@ function boWin(p, n) { var s = 0; for (var k = 0; k < n; k++) s += binom(n - 1 +
 function outcomes(id) {
   var m = B().byId[id], p = players(id), st = strength();
   var diff = (st[p[0]] || 50) - (st[p[1]] || 50);
-  var pl = 1 / (1 + Math.exp(-diff / 9));                         // Leg-Chance
+  var pl = 1 / (1 + Math.exp(-diff / 11));                         // Leg-Chance
   var md = mode(m.st), n = need(m.st), pu = md.sets ? boWin(pl, (md.sets + 1) / 2) : pl;
   var out = [];
   for (var k = 0; k < n; k++) {
