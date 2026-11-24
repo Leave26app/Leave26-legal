@@ -56,7 +56,7 @@ var EN = {
   "Regeln": "Rules",
   "Gruppe": "Group", "Spiele": "Matches", "Sp": "P", "S": "W", "U": "D", "N": "L", "Legs": "Legs", "Diff": "Diff", "Pkt": "Pts", "Ø": "Avg",
   "Eintragen": "Enter result", "Ändern": "Edit", "Speichern": "Save",
-  "Ø Average": "Avg", "180er": "180s", "High Finish": "High finish", "Bestes Leg (Darts)": "Best leg (darts)",
+  "Ø Average": "Avg", "180er": "180s", "Höchstes Finish": "Highest finish", "Bestes Leg (Darts)": "Best leg (darts)",
   "Ungültiges Ergebnis": "Invalid result",
   "Der Sieger braucht genau {0} Legs, der Verlierer weniger.": "The winner needs exactly {0} legs, the loser fewer.",
   "Bei 2 Legs fix muss die Summe 2 sein (2:0, 1:1, 0:2).": "With 2 fixed legs the sum must be 2 (2:0, 1:1, 0:2).",
@@ -99,7 +99,7 @@ var EN = {
   "Die Besten jeder Gruppe kommen in die K.O.-Runde, über Kreuz gesetzt (Gruppensieger gegen Zweite anderer Gruppen).": "The best of each group reach the knockout stage, seeded crosswise (group winners against runners-up of other groups).",
   "Liga: Jeder spielt gegen jeden, die Tabelle entscheidet.": "League: everyone plays everyone, the table decides.",
   "In neuem Fenster öffnen (2. Bildschirm)": "Open in a new window (second screen)",
-  "Statistik pro Spiel ist freiwillig. Ø, 180er, High Finish und bestes Leg fliessen in die Auswertung ein.": "Per-match stats are optional. Avg, 180s, high finish and best leg feed into the stats.",
+  "Statistik pro Spiel ist freiwillig. Ø, 180er, höchstes Finish und bestes Leg fliessen in die Auswertung ein.": "Per-match stats are optional. Avg, 180s, highest finish and best leg feed into the stats.",
   "Kürzel": "Short", "Unentschieden": "Draw",
   "Beispielturnier laden": "Load example tournament",
   "Lädt ein Beispiel mit 12 Spielern, fertiger Gruppenphase und laufender K.O.-Runde. Der aktuelle Stand wird ersetzt.": "Loads an example with 12 players, a finished group stage and a running knockout stage. Replaces the current state.",
@@ -488,7 +488,7 @@ function stats() {
       s.sp++; s.lf += x[1]; s.la += x[2];
       if (x[1] > x[2]) s.w++; else if (x[1] < x[2]) s.l++; else s.d++;
       if (x[3] != null) { s.av.push(x[3]); s.mx = Math.max(s.mx, x[3]); }
-      s.t180 += x[4] || 0; if ((x[5] || 0) >= 100) s.hf = Math.max(s.hf, x[5]);
+      s.t180 += x[4] || 0; s.hf = Math.max(s.hf, x[5] || 0);
       if (x[6]) s.bl = s.bl ? Math.min(s.bl, x[6]) : x[6];
     });
   });
@@ -773,7 +773,6 @@ function saveResult(id, form) {
   var r = { la: g("la"), lb: g("lb"), a1: g("a1"), a2: g("a2"), o1: g("o1"), o2: g("o2"), h1: g("h1"), h2: g("h2"), b1: g("b1"), b2: g("b2"), g1: g("g1"), g2: g("g2") };
   ["la", "lb", "o1", "o2", "h1", "h2", "b1", "b2", "g1", "g2"].forEach(function (k) { if (r[k] != null) r[k] = Math.max(0, Math.round(r[k])); });
   if (r.h1 != null && r.h1 > 170) r.h1 = 170; if (r.h2 != null && r.h2 > 170) r.h2 = 170;
-  if (r.h1 != null && r.h1 < 100) r.h1 = null; if (r.h2 != null && r.h2 < 100) r.h2 = null;   // High Finish erst ab 100
   if (!finished(r, m.st)) {
     UI.err[id] = fix2(m.st) ? t("Bei 2 Legs fix muss die Summe 2 sein (2:0, 1:1, 0:2).") : isSets(m.st) ? t("Der Sieger braucht genau {0} Sätze, der Verlierer weniger.", need(m.st)) : t("Der Sieger braucht genau {0} Legs, der Verlierer weniger.", need(m.st));
     return false;
@@ -960,10 +959,10 @@ function matchBox(id, opts) {
         '<div class="a">' + f("g1", "–") + "<span>" + t("Legs gesamt") + "</span>" + f("g2", "–") + "</div>" +
         (m.st === "g" ? '<p class="mu ctr">' + t("Legs gesamt eintragen (freiwillig), dann zählt bei Gleichstand die Leg-Differenz.") + "</p>" : "") : "") +
       '<div class="a">' + f("a1", "–") + "<span>" + t("Ø Average") + "</span>" + f("a2", "–") + "</div>" +
-      '<details class="st"' + (res.o1 || res.o2 || res.h1 || res.h2 || res.b1 || res.b2 ? " open" : "") + '><summary class="mu">' + t("Mehr Statistik") + " (180er, High Finish, " + t("Bestes Leg (Darts)") + ")</summary>" +
-      [["o", t("180er")], ["h", t("High Finish") + " (" + t("ab 100") + ")"], ["b", t("Bestes Leg (Darts)")]].map(function (x) {
+      '<details class="st"' + (res.o1 || res.o2 || res.h1 || res.h2 || res.b1 || res.b2 ? " open" : "") + '><summary class="mu">' + t("Mehr Statistik") + " (180er, " + t("Höchstes Finish") + ", " + t("Bestes Leg (Darts)") + ")</summary>" +
+      [["o", t("180er")], ["h", t("Höchstes Finish")], ["b", t("Bestes Leg (Darts)")]].map(function (x) {
         return '<div class="a">' + f(x[0] + "1", "–") + "<span>" + x[1] + "</span>" + f(x[0] + "2", "–") + "</div>"; }).join("") +
-      '<p class="mu">' + t("Statistik pro Spiel ist freiwillig. Ø, 180er, High Finish und bestes Leg fliessen in die Auswertung ein.") + "</p></details>" +
+      '<p class="mu">' + t("Statistik pro Spiel ist freiwillig. Ø, 180er, höchstes Finish und bestes Leg fliessen in die Auswertung ein.") + "</p></details>" +
       (UI.err[id] ? '<p class="wa">' + esc(UI.err[id]) + "</p>" : "") +
       '<div class="row"><button class="b p" type="submit">' + (onBoard(id) >= 0 ? t("Ergebnis speichern und Board freigeben") : t("Speichern")) + "</button>" +
       (opts.form ? "" : '<button class="b" type="button" data-do="cancel">' + t("Abbrechen") + "</button>") + "</div></form>";
@@ -1131,7 +1130,7 @@ function viewStats() {
   return (pod && pod[0] != null ? '<div class="card champ">🏆 ' + t("Turniersieger") + "<b>" + esc(nm(pod[0])) + "</b></div>" : "") +
     prizeResult() + '<div class="chips">' + chip("🎯 " + t("Bestes Ø-Average"), best("avg", false, function (v) { return v.toFixed(2); })) + chip("💯 " + t("Meiste 180er"), best("t180", false, function (v) { return v; })) +
     chip("🔥 " + t("Höchstes Finish"), best("hf", false, function (v) { return v; })) + chip("⚡ " + t("Kürzestes Leg"), best("bl", true, function (v) { return v + (lang() === "en" ? " darts" : " Darts"); })) + "</div>" +
-    '<div class="card"><h2>' + t("Statistik") + (pod ? "" : ' <span class="mu">(' + t("vorläufig") + ")</span>") + '</h2><div class="sc"><table><tr><th>' + t("Platz") + '</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th><th>" + t("S") + "</th><th>" + t("N") + "</th><th>" + unit("g") + "</th><th>" + t("Ø") + "</th><th>" + t("Bester Ø") + "</th><th>180</th><th>HF</th><th>" + (lang() === "en" ? "Best leg" : "Bestes Leg") + "</th></tr>" +
+    '<div class="card"><h2>' + t("Statistik") + (pod ? "" : ' <span class="mu">(' + t("vorläufig") + ")</span>") + '</h2><div class="sc"><table><tr><th>' + t("Platz") + '</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th><th>" + t("S") + "</th><th>" + t("N") + "</th><th>" + unit("g") + "</th><th>" + t("Ø") + "</th><th>" + t("Bester Ø") + "</th><th>180</th><th>" + (lang() === "en" ? "Finish" : "Finish") + "</th><th>" + (lang() === "en" ? "Best leg" : "Bestes Leg") + "</th></tr>" +
     T.map(function (s) { var pl = place[s.id]; return "<tr><td>" + (pl ? medal[pl - 1] : "–") + '</td><td class="l">' + esc(nm(s.id)) + "</td><td>" + s.sp + "</td><td>" + s.w + "</td><td>" + s.l + "</td><td>" + s.lf + ":" + s.la + "</td><td><b>" + (s.avg != null ? s.avg.toFixed(2) : "–") + "</b></td><td>" + (s.mx ? s.mx.toFixed(2) : "–") + "</td><td>" + (s.t180 || "–") + "</td><td>" + (s.hf || "–") + "</td><td>" + (s.bl || "–") + "</td></tr>"; }).join("") +
     "</table></div></div>";
 }
