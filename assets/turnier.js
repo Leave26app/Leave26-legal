@@ -1297,6 +1297,19 @@ function viewTv() {
 }
 
 /* ---------- Rendern ---------- */
+// TV: alles so gross zoomen, dass der Bildschirm in der Höhe ausgefüllt ist
+function fitTv() {
+  if (!UI.tv) { root.style.zoom = ""; return; }
+  var z = 1; root.style.zoom = "1";
+  for (var i = 0; i < 4; i++) {
+    var h = root.getBoundingClientRect().height; if (!h) break;
+    z = Math.max(1, Math.min(3, z * (window.innerHeight - 8) / h));
+    root.style.zoom = String(z);
+  }
+  // nach dem Umbruch nie über den Rand hinaus
+  for (var j = 0; j < 6 && root.getBoundingClientRect().height > window.innerHeight && z > 1; j++) { z = Math.max(1, z * 0.96); root.style.zoom = String(z); }
+}
+window.addEventListener("resize", function () { if (UI.tv) fitTv(); });
 var TABS = [["t", "Teilnehmer"], ["g", "Spielplan"], ["p", "Boards"], ["k", "Turnierbaum"], ["w", "Wetten"], ["s", "Statistik"]];
 function render() {
   dirty();
@@ -1307,7 +1320,8 @@ function render() {
   if (h1) h1.textContent = t("Turnier-Planer");
   if (intro) { intro.textContent = t("Plane dein lokales Dartturnier kostenlos: Teilnehmer eintragen, auslosen, Spiele auf die Boards verteilen und alles live auf dem TV zeigen. Alles bleibt in deinem Browser gespeichert."); }
   var nav = document.getElementById("tp-nav"), view = document.getElementById("tp-view");
-  if (UI.tv) { nav.innerHTML = ""; view.innerHTML = viewTv(); return; }
+  if (UI.tv) { nav.innerHTML = ""; view.innerHTML = viewTv(); fitTv(); return; }
+  root.style.zoom = "";
   var tabs = TABS.filter(function (x) { return !(x[0] === "w" && !(S.bet && S.bet.on)) && !(x[0] === "k" && (S.fmt === "league" || (S.fmt === "swiss" && S.sko < 2))); });
   nav.innerHTML = tabs.map(function (x) { return '<button class="' + (S.tab === x[0] ? "on" : "") + '" data-do="tab" data-v="' + x[0] + '">' + t(x[1]) + "</button>"; }).join("");
   view.innerHTML = S.tab === "t" ? viewSetup() : S.tab === "g" ? viewSchedule() : S.tab === "p" ? viewBoards() : S.tab === "k" ? viewBracket() : S.tab === "w" ? viewBets() : viewStats();
