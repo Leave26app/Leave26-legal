@@ -750,8 +750,10 @@ function nextFor(bi) {
       var e = plan[j]; if (e.b !== bi) continue;
       var rr = resolve(e.id); if (!rr.playable || onBoard(e.id) >= 0) continue;
       var bz = busy(bi), pp = players(e.id);
-      return bz[pp[0]] || bz[pp[1]] ? null : e.id;     // Board wartet auf seine eingeplante Partie
+      if (!bz[pp[0]] && !bz[pp[1]]) return e.id;      // nächste freie Partie, die für dieses Board eingeplant ist
     }
+    var rest = B().list.some(function (m) { return m.st === "g" && m.pb === bi && resolve(m.id).playable; });
+    if (rest) return null;                              // alle Partien dieses Boards warten auf Spieler
   }
   var bs = busy(bi), q = queue();
   if (plan) q = q.filter(function (id) { return B().byId[id].st !== "g"; });
