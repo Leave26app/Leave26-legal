@@ -104,7 +104,7 @@ var EN = {
   "Beispielturnier laden": "Load example tournament",
   "Lädt ein Beispiel mit 12 Spielern, fertiger Gruppenphase und laufender K.O.-Runde. Der aktuelle Stand wird ersetzt.": "Loads an example with 12 players, a finished group stage and a running knockout stage. Replaces the current state.",
   "Diese Option gibt es nur in der Gruppenphase.": "This option is only available in the group stage.",
-  "Liga + Stufenleiter": "League + stepladder", "Play-offs": "Play-offs", "Spiel 1": "Match 1", "Spiel 2": "Match 2",
+  "Liga + Stufenleiter": "League + stepladder", "Play-offs": "Play-offs", "Spiel 1": "Match 1", "Spiel 2": "Match 2", "Spiel 1 und Rote Laterne": "Match 1 and wooden spoon",
   "Play-offs für die Top": "Play-offs for the top", "Spiel um die Rote Laterne": "Wooden spoon match",
   "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach steigen die Besten nach Ligaplatz in die Play-offs ein: 3. gegen 4., der Sieger gegen den 2., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then the best enter the play-offs by league position: 3rd vs 4th, the winner vs 2nd, the winner in the final vs the league winner.",
   "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach spielt der 2. gegen den 3., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then 2nd plays 3rd, the winner meets the league winner in the final.",
@@ -130,7 +130,7 @@ function fresh() {
   return {
     v: 2, name: "", players: [], nid: 1,
     fmt: "groups", ng: 2, adv: 2, rr2: false, third: true, ltop: 4, lantern: true,
-    mg: { bo: 3, x: 501, fix2: false }, mk: { bo: 3, x: 501 }, mf: { bo: 5, x: 501 },
+    mg: { bo: 3, x: 501, fix2: false }, mk: { bo: 3, x: 501 }, me: { bo: 3, x: 501 }, mf: { bo: 5, x: 501 },
     sr: 5, sko: 0,
     nb: 2, writer: false, auto: true, fee: 0, stake: false, cur: "CHF", extra: 0, house: 0, split: [50, 30, 20],
     started: false, draw: null, res: {}, board: {}, wr: {}, last: {}, wc: {}, fin: {}, defer: {}, t0: null, tab: "t"
@@ -153,7 +153,7 @@ function pow2(n) { var p = 2; while (p < n) p *= 2; return p; }
 function fmtTime(ts) { var s = Math.max(0, Math.floor((Date.now() - ts) / 1000)); var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60); s %= 60; return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s).padStart(2, "0"); }
 
 /* ---------- Spielmodus ---------- */
-function mode(k) { return k === "g" ? S.mg : k === "f" ? S.mf : S.mk; }
+function mode(k) { return k === "g" ? S.mg : k === "f" ? S.mf : k === "e" ? (S.me || (S.me = { bo: 3, x: 501 })) : S.mk; }
 function fix2(k) { return k === "g" && S.mg.fix2; }
 function need(k) { return fix2(k) ? 2 : (mode(k).bo + 1) / 2; }
 function isSets(k) { return !fix2(k) && !!mode(k).sets; }
@@ -163,6 +163,9 @@ function modeTxt(k) {
   if (fix2(k)) return (lang() === "en" ? "2 legs fixed · " : "2 Legs fix · ") + m.x;
   if (isSets(k)) return "Best of " + m.bo + " " + t("Sets") + " (" + t("je Best of {0} Legs", m.sets) + ") · " + m.x;
   return "Best of " + m.bo + " · " + m.x;
+}
+function ladModes() {
+  return (S.ltop >= 4 ? t("Spiel 1") + ": " + modeTxt("e") + " · " + t("Spiel 2") + ": " : "") + modeTxt("k") + " · " + t("Finale") + ": " + modeTxt("f");
 }
 function isLeague() { return S.fmt === "league" || S.fmt === "ladder"; }
 function hasGroups() { return S.fmt === "groups" || S.fmt === "league" || S.fmt === "ladder"; }
@@ -352,14 +355,14 @@ function build() {
   if (S.fmt === "ladder") {
     var seed = function (n) { return { seed: n }; };
     if (S.ltop >= 4) {
-      add({ id: "lad1", st: "k", label: t("Spiel 1"), src: [seed(3), seed(4)], order: 1010 });
+      add({ id: "lad1", st: "e", label: t("Spiel 1"), src: [seed(3), seed(4)], order: 1010 });
       add({ id: "lad2", st: "k", label: t("Spiel 2"), src: [seed(2), { w: "lad1" }], order: 1020 });
       add({ id: "ladf", st: "f", label: t("Finale"), src: [seed(1), { w: "lad2" }], order: 1030 });
-      if (S.lantern && S.draw.ids.length >= 5) add({ id: "ladl", st: "k", label: t("Spiel um die Rote Laterne"), src: [seed(S.draw.ids.length), { l: "lad1" }], order: 1021 });
+      if (S.lantern && S.draw.ids.length >= 5) add({ id: "ladl", st: "e", label: t("Spiel um die Rote Laterne"), src: [seed(S.draw.ids.length), { l: "lad1" }], order: 1021 });
     } else {
       add({ id: "lad2", st: "k", label: t("Spiel 1"), src: [seed(2), seed(3)], order: 1020 });
       add({ id: "ladf", st: "f", label: t("Finale"), src: [seed(1), { w: "lad2" }], order: 1030 });
-      if (S.lantern && S.draw.ids.length >= 4) add({ id: "ladl", st: "k", label: t("Spiel um die Rote Laterne"), src: [seed(S.draw.ids.length), { l: "lad2" }], order: 1021 });
+      if (S.lantern && S.draw.ids.length >= 4) add({ id: "ladl", st: "e", label: t("Spiel um die Rote Laterne"), src: [seed(S.draw.ids.length), { l: "lad2" }], order: 1021 });
     }
   }
   if (S.fmt === "dko") {
@@ -741,7 +744,7 @@ function viewSetup() {
       '<p class="mu">' + rulesFmt() + "</p></div>";
     h += '<div class="card"><h2>' + t("Spielmodus") + "</h2>" +
       (hasGroups() || S.fmt === "swiss" ? modeRow("g", t("Gruppen / Liga / Runden")) : "") +
-      (S.fmt !== "league" && !(S.fmt === "swiss" && S.sko < 2) ? modeRow("k", S.fmt === "ladder" ? t("Play-offs") : t("K.O.-Runden")) + modeRow("f", t("Finale")) : "") + "</div>";
+      (S.fmt !== "league" && !(S.fmt === "swiss" && S.sko < 2) ? (S.fmt === "ladder" && S.ltop >= 4 ? modeRow("e", t("Spiel 1 und Rote Laterne")) + modeRow("k", t("Spiel 2")) : modeRow("k", S.fmt === "ladder" ? t("Play-offs") : t("K.O.-Runden"))) + modeRow("f", t("Finale")) : "") + "</div>";
   }
   h += '<div class="card"><h2>' + t("Boards und Ablauf") + "</h2>" +
     '<div class="row"><label>' + t("Anzahl Boards") + " " + sel("nb", [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16].map(function (x) { return [x, x]; }), S.nb) + "</label></div>" +
@@ -882,7 +885,7 @@ function viewSchedule() {
   var km = b.list.filter(function (m) { return m.st !== "g"; });
   if (km.length) {
     if (!stageDone()) h += '<p class="wa">' + t(S.fmt === "swiss" ? "Schweizer-System-Runden noch nicht fertig – die K.O.-Paarungen stehen danach fest." : S.fmt === "ladder" ? "Liga noch nicht fertig – die Play-off-Paarungen stehen danach fest." : "Gruppenphase noch nicht fertig – die K.O.-Paarungen stehen danach fest.") + "</p>";
-    h += '<div class="card"><h2>' + t(S.fmt === "ladder" ? "Play-offs" : "K.O.-Runden") + ' <span class="mu">· ' + modeTxt("k") + " · " + t("Finale") + ": " + modeTxt("f") + "</span></h2>" +
+    h += '<div class="card"><h2>' + t(S.fmt === "ladder" ? "Play-offs" : "K.O.-Runden") + ' <span class="mu">· ' + (S.fmt === "ladder" ? ladModes() : modeTxt("k") + " · " + t("Finale") + ": " + modeTxt("f")) + "</span></h2>" +
       km.filter(function (m) { var r = resolve(m.id); return !(r.bye); }).map(function (m) { return matchBox(m.id); }).join("") + "</div>";
   }
   return h;
@@ -914,7 +917,7 @@ function viewBracket() {
   if (champ && champ[0] != null) h += '<div class="card champ">🏆 ' + t("Turniersieger") + "<b>" + esc(nm(champ[0])) + "</b></div>";
   if (S.fmt === "ladder") {
     var lc = (b.byId.lad1 ? bracketCol(["lad1"], t("Spiel 1")) + bracketCol(["lad2"], t("Spiel 2")) : bracketCol(["lad2"], t("Spiel 1"))) + bracketCol(["ladf"], t("Finale"));
-    h += '<div class="card"><h2>' + t("Play-offs") + ' <span class="mu">· ' + modeTxt("k") + " · " + t("Finale") + ": " + modeTxt("f") + '</span></h2><div class="br">' + lc + "</div>" +
+    h += '<div class="card"><h2>' + t("Play-offs") + ' <span class="mu">· ' + ladModes() + '</span></h2><div class="br">' + lc + "</div>" +
       (b.byId.ladl ? '<div class="br p3">' + bracketCol(["ladl"], t("Spiel um die Rote Laterne")) + "</div>" : "") + "</div>";
     return h;
   }
@@ -1046,9 +1049,9 @@ function setOpt(k, v) {
   if (k === "name") { S.name = String(v).slice(0, 60); return; }
   if (k === "ng" || k === "adv" || k === "nb" || k === "sr" || k === "sko" || k === "ltop") { S[k] = +v; return; }
   var mk = k.split("_");
-  if (mk[0] === "bo") { var m = mk[1] === "g" ? S.mg : mk[1] === "f" ? S.mf : S.mk; if (v === "fix2") { m.fix2 = true; m.bo = 3; } else { m.fix2 = false; m.bo = +v; } return; }
-  if (mk[0] === "u") { (mk[1] === "g" ? S.mg : mk[1] === "f" ? S.mf : S.mk).sets = +v || 0; return; }
-  if (mk[0] === "x") { (mk[1] === "g" ? S.mg : mk[1] === "f" ? S.mf : S.mk).x = +v; }
+  if (mk[0] === "bo") { var m = mode(mk[1]); if (v === "fix2") { m.fix2 = true; m.bo = 3; } else { m.fix2 = false; m.bo = +v; } return; }
+  if (mk[0] === "u") { mode(mk[1]).sets = +v || 0; return; }
+  if (mk[0] === "x") { mode(mk[1]).x = +v; }
 }
 root.addEventListener("click", function (e) {
   var el = e.target.closest("[data-do]"); if (!el || !root.contains(el)) return;
