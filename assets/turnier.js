@@ -105,6 +105,14 @@ var EN = {
   "Lädt ein Beispiel mit 12 Spielern, fertiger Gruppenphase und laufender K.O.-Runde. Der aktuelle Stand wird ersetzt.": "Loads an example with 12 players, a finished group stage and a running knockout stage. Replaces the current state.",
   "Diese Option gibt es nur in der Gruppenphase.": "This option is only available in the group stage.",
   "Liga + Stufenleiter": "League + stepladder", "Play-offs": "Play-offs", "Spiel 1": "Match 1", "Spiel 2": "Match 2", "Spiel 1 und Rote Laterne": "Match 1 and wooden spoon",
+  "Wetten": "Bets", "Schluck-Wetten (Partymodus)": "Sip bets (party mode)", "Ausgeschiedene dürfen auf die restlichen Spiele Schlücke setzen. Richtig getippt: Einsatz × Quote verteilen. Falsch: Einsatz selbst trinken.": "Eliminated players can bet sips on the remaining matches. Right: hand out stake × odds. Wrong: drink the stake yourself.",
+  "Alle dürfen wetten (nicht nur Ausgeschiedene)": "Everyone may bet (not only eliminated players)", "Max. Schlücke pro Wette": "Max sips per bet",
+  "Wer wettet": "Who bets", "Tipp": "Pick", "Schlücke": "Sips", "Wette platzieren": "Place bet", "Sieg": "Win", "Genaues Ergebnis": "Exact score",
+  "Quote": "Odds", "offen": "open", "verteilt {0}": "hands out {0}", "trinkt {0}": "drinks {0}", "Schluck-Bilanz": "Sip balance", "Verteilt": "Handed out", "Getrunken": "Drunk",
+  "Noch niemand ausgeschieden – Wetten starten, sobald der Erste raus ist.": "Nobody is out yet – betting starts once the first player is eliminated.",
+  "Gerade ist kein Spiel offen, auf das gewettet werden kann.": "No match open for betting right now.",
+  "Quoten aus Average und Leg-Differenz im Turnier. Ohne Daten gilt 50:50.": "Odds from average and leg difference in this tournament. Without data it is 50:50.",
+  "Wette löschen": "Delete bet", "Wetten auf dieses Spiel": "Bets on this match", "Statt Bier geht alles, was im Glas ist.": "Anything in your glass counts, not just beer.",
   "Play-offs für die Top": "Play-offs for the top", "Spiel um die Rote Laterne": "Wooden spoon match",
   "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach steigen die Besten nach Ligaplatz in die Play-offs ein: 3. gegen 4., der Sieger gegen den 2., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then the best enter the play-offs by league position: 3rd vs 4th, the winner vs 2nd, the winner in the final vs the league winner.",
   "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach spielt der 2. gegen den 3., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then 2nd plays 3rd, the winner meets the league winner in the final.",
@@ -129,7 +137,8 @@ function t(s) {
 function fresh() {
   return {
     v: 2, name: "", players: [], nid: 1,
-    fmt: "groups", ng: 2, adv: 2, rr2: false, third: true, ltop: 4, lantern: true,
+    fmt: "groups", ng: 2, adv: 2, rr2: false, third: true, ltop: 4, lantern: false,
+    bet: { on: false, all: false, max: 10 }, bets: [], bid: 1,
     mg: { bo: 3, x: 501, fix2: false }, mk: { bo: 3, x: 501 }, me: { bo: 3, x: 501 }, mf: { bo: 5, x: 501 },
     sr: 5, sko: 0,
     nb: 2, writer: false, auto: true, fee: 0, stake: false, cur: "CHF", extra: 0, house: 0, split: [50, 30, 20],
@@ -138,6 +147,7 @@ function fresh() {
 }
 var S = fresh();
 try { var raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) {}
+if (!S.bet) S.bet = { on: false, all: false, max: 10 };
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
 var UI = { edit: null, err: {}, pend: null, backup: "", imp: "", tv: location.hash === "#tv" };
@@ -485,6 +495,119 @@ function stats() {
   return Object.keys(T).map(function (k) { var s = T[k]; s.avg = s.av.length ? s.av.reduce(function (a, b) { return a + b; }, 0) / s.av.length : null; return s; });
 }
 
+/* ---------- Schluck-Wetten ---------- */
+// Spielstärke aus diesem Turnier: Average (falls eingetragen) plus Leg-Differenz pro Spiel
+function strength() {
+  var T = {}, all = [];
+  (S.draw ? S.draw.ids : []).forEach(function (id) { T[id] = { av: [], ld: 0, n: 0 }; });
+  B().list.forEach(function (m) {
+    var r = S.res[m.id], res = resolve(m.id);
+    if (!r || !res.done || res.bye) return;
+    var p = players(m.id), a = T[p[0]], b = T[p[1]]; if (!a || !b) return;
+    if (r.a1 != null) { a.av.push(r.a1); all.push(r.a1); }
+    if (r.a2 != null) { b.av.push(r.a2); all.push(r.a2); }
+    var d = r.g1 != null && r.g2 != null ? r.g1 - r.g2 : isSets(m.st) ? (r.la - r.lb) * 2 : r.la - r.lb;
+    a.ld += d; b.ld -= d; a.n++; b.n++;
+  });
+  var base = all.length ? all.reduce(function (s, v) { return s + v; }, 0) / all.length : 50, out = {};
+  Object.keys(T).forEach(function (k) {
+    var x = T[k], av = x.av.length ? x.av.reduce(function (s, v) { return s + v; }, 0) / x.av.length : base;
+    av = (av * x.av.length + base) / (x.av.length + 1);           // wenige Werte: Richtung Durchschnitt ziehen
+    out[k] = av + (x.n ? 2.5 * x.ld / x.n * x.n / (x.n + 1) : 0);
+  });
+  return out;
+}
+function binom(n, k) { var r = 1; for (var i = 1; i <= k; i++) r = r * (n - k + i) / i; return r; }
+// Wahrscheinlichkeit, ein "Best of" mit Ziel n zu gewinnen, bei Einzelchance p
+function boWin(p, n) { var s = 0; for (var k = 0; k < n; k++) s += binom(n - 1 + k, k) * Math.pow(p, n) * Math.pow(1 - p, k); return s; }
+// Alle Ergebnisse eines Spiels mit Wahrscheinlichkeit, aus Sicht Spieler A
+function outcomes(id) {
+  var m = B().byId[id], p = players(id), st = strength();
+  var diff = (st[p[0]] || 50) - (st[p[1]] || 50);
+  var pl = 1 / (1 + Math.exp(-diff / 9));                         // Leg-Chance
+  var md = mode(m.st), n = need(m.st), pu = md.sets ? boWin(pl, (md.sets + 1) / 2) : pl;
+  var out = [];
+  for (var k = 0; k < n; k++) {
+    out.push({ a: n, b: k, pr: binom(n - 1 + k, k) * Math.pow(pu, n) * Math.pow(1 - pu, k) });
+    out.push({ a: k, b: n, pr: binom(n - 1 + k, k) * Math.pow(1 - pu, n) * Math.pow(pu, k) });
+  }
+  var pa = out.reduce(function (s, o) { return s + (o.a > o.b ? o.pr : 0); }, 0);
+  return { win: [pa, 1 - pa], exact: out.sort(function (x, y) { return y.a - y.b - (x.a - x.b); }) };
+}
+function quote(pr) { return Math.max(1.1, Math.min(30, Math.round(0.92 / Math.max(pr, 0.001) * 10) / 10)); }
+function fmtQ(q) { return lang() === "en" ? q.toFixed(1) : q.toFixed(1).replace(".", ","); }
+function eliminated() {
+  var out = {}, b = B();
+  if (!S.started) return out;
+  if (stageDone()) {
+    var q = null;
+    if (S.fmt === "ladder") q = stand(0).slice(0, S.ltop).map(function (x) { return x.id; });
+    else if (S.fmt === "groups" || (S.fmt === "swiss" && S.sko >= 2)) { q = []; koFirstRound().forEach(function (pr) { pr.forEach(function (x) { if (x.p != null) q.push(x.p); }); }); }
+    if (q) S.draw.ids.forEach(function (id) { if (q.indexOf(id) < 0) out[id] = 1; });
+  }
+  b.list.forEach(function (m) {
+    if (m.st === "g" || (S.fmt === "dko" && m.br === "w")) return;
+    var r = resolve(m.id); if (r.done && r.lose != null) out[r.lose] = 1;
+  });
+  return out;
+}
+function bettors(id) {
+  var p = players(id), el = eliminated();
+  return S.draw.ids.filter(function (x) { return x !== p[0] && x !== p[1] && (S.bet.all || el[x]); });
+}
+function betOpen(id) { var r = resolve(id), p = players(id); return S.started && r.playable && p[0] != null && p[1] != null && !fix2(B().byId[id].st); }
+function betState(bt) {
+  var r = resolve(bt.m), res = S.res[bt.m];
+  if (!r || !r.done || !res) return null;
+  var won = bt.kind === "w" ? r.win === bt.pick : (res.la + ":" + res.lb) === bt.pick;
+  return { won: won, sips: won ? Math.round(bt.stake * bt.q) : bt.stake };
+}
+function placeBet(id, form) {
+  var g = function (n) { var el = form.querySelector('[name="' + n + '"]'); return el ? el.value : ""; };
+  var by = +g("by"), pick = g("pick"), stake = Math.round(num(g("stake")) || 0);
+  if (!betOpen(id) || bettors(id).indexOf(by) < 0 || !pick || stake < 1) return;
+  stake = Math.min(stake, S.bet.max || 10);
+  var o = outcomes(id), p = players(id), bt = { id: S.bid++, m: id, by: by, stake: stake };
+  if (pick.charAt(0) === "w") { var side = +pick.slice(1); bt.kind = "w"; bt.pick = p[side]; bt.q = quote(o.win[side]); }
+  else { var ab = pick.slice(1); var hit = o.exact.filter(function (x) { return x.a + ":" + x.b === ab; })[0]; if (!hit) return; bt.kind = "x"; bt.pick = ab; bt.q = quote(hit.pr); }
+  S.bets = S.bets || []; S.bets.push(bt);
+}
+function betLine(bt) {
+  var p = players(bt.m), st = betState(bt);
+  var what = bt.kind === "w" ? t("Sieg") + " " + esc(nm(bt.pick)) : esc(nm(p[0])) + " " + esc(bt.pick) + " " + esc(nm(p[1]));
+  var res = st ? (st.won ? '<b class="w">✓ ' + t("verteilt {0}", st.sips) + "</b>" : '<b class="wa">✗ ' + t("trinkt {0}", st.sips) + "</b>") : '<span class="mu">' + t("offen") + "</span>" +
+    ' <button class="x" data-do="delbet" data-id="' + bt.id + '" title="' + t("Wette löschen") + '" aria-label="' + t("Wette löschen") + '">✕</button>';
+  return '<div class="pl"><span class="nm"><b>' + esc(nm(bt.by)) + "</b>: " + bt.stake + " " + t("Schlücke") + " · " + what + ' <span class="mu">(' + t("Quote") + " " + fmtQ(bt.q) + ")</span></span>" + res + "</div>";
+}
+function viewBets() {
+  if (!S.started) return startHint();
+  var h = '<p class="mu">' + t("Ausgeschiedene dürfen auf die restlichen Spiele Schlücke setzen. Richtig getippt: Einsatz × Quote verteilen. Falsch: Einsatz selbst trinken.") + " " + t("Quoten aus Average und Leg-Differenz im Turnier. Ohne Daten gilt 50:50.") + " " + t("Statt Bier geht alles, was im Glas ist.") + "</p>";
+  var open = B().list.filter(function (m) { return betOpen(m.id) && bettors(m.id).length; });
+  if (!S.bet.all && !Object.keys(eliminated()).length) h += '<div class="card"><p class="mu">' + t("Noch niemand ausgeschieden – Wetten starten, sobald der Erste raus ist.") + "</p></div>";
+  else if (!open.length) h += '<div class="card"><p class="mu">' + t("Gerade ist kein Spiel offen, auf das gewettet werden kann.") + "</p></div>";
+  open.forEach(function (m) {
+    var p = players(m.id), o = outcomes(m.id), bs = bettors(m.id);
+    var opts = [["w0", t("Sieg") + " " + nm(p[0]) + " · " + fmtQ(quote(o.win[0]))], ["w1", t("Sieg") + " " + nm(p[1]) + " · " + fmtQ(quote(o.win[1]))]]
+      .concat(o.exact.map(function (x) { return ["x" + x.a + ":" + x.b, nm(p[0]) + " " + x.a + ":" + x.b + " " + nm(p[1]) + " · " + fmtQ(quote(x.pr))]; }));
+    var mine = (S.bets || []).filter(function (bt) { return bt.m === m.id; });
+    h += '<div class="card"><h2>' + esc(nm(p[0])) + ' <span class="mu">' + t("gegen") + "</span> " + esc(nm(p[1])) + ' <span class="mu">· ' + esc(m.label) + " · " + modeTxt(m.st) + "</span></h2>" +
+      '<div class="chips">' + '<div class="chip"><div class="mu">' + t("Sieg") + " " + esc(nm(p[0])) + "</div><div><b>" + fmtQ(quote(o.win[0])) + '</b></div></div><div class="chip"><div class="mu">' + t("Sieg") + " " + esc(nm(p[1])) + "</div><div><b>" + fmtQ(quote(o.win[1])) + "</b></div></div></div>" +
+      '<form class="bet row" data-id="' + m.id + '"><label>' + t("Wer wettet") + ' <select name="by">' + bs.map(function (x) { return '<option value="' + x + '">' + esc(nm(x)) + "</option>"; }).join("") + "</select></label>" +
+      "<label>" + t("Tipp") + ' <select name="pick">' + opts.map(function (x) { return '<option value="' + esc(x[0]) + '">' + esc(x[1]) + "</option>"; }).join("") + "</select></label>" +
+      "<label>" + t("Schlücke") + ' <input class="n" name="stake" inputmode="numeric" value="3"></label><button class="b p" type="submit">🍺 ' + t("Wette platzieren") + "</button></form>" +
+      (mine.length ? '<h3 class="sub">' + t("Wetten auf dieses Spiel") + "</h3>" + mine.map(betLine).join("") : "") + "</div>";
+  });
+  var done = (S.bets || []).filter(function (bt) { return betState(bt); });
+  if (done.length) {
+    var bal = {};
+    done.forEach(function (bt) { var st = betState(bt), x = bal[bt.by] = bal[bt.by] || { out: 0, drunk: 0 }; if (st.won) x.out += st.sips; else x.drunk += st.sips; });
+    h += '<div class="card"><h2>🍺 ' + t("Schluck-Bilanz") + '</h2><div class="sc"><table><tr><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Verteilt") + "</th><th>" + t("Getrunken") + "</th></tr>" +
+      Object.keys(bal).sort(function (a, b) { return bal[b].out - bal[a].out; }).map(function (k) { return '<tr><td class="l">' + esc(nm(+k)) + "</td><td>" + bal[k].out + "</td><td>" + bal[k].drunk + "</td></tr>"; }).join("") + "</table></div>" +
+      done.slice().reverse().map(betLine).join("") + "</div>";
+  }
+  return h;
+}
+
 /* ---------- Endstand ---------- */
 // Plätze 1–4: [{from, to, ids}] – geteilte Plätze haben from < to
 function places() {
@@ -634,10 +757,10 @@ function startDraw() {
     d.swiss = [r1];
   }
   else d.seeds = ps.slice();
-  S.draw = d; S.started = true; S.res = {}; S.board = {}; S.wr = {}; S.last = {}; S.wc = {}; S.fin = {}; S.t0 = null; S.tab = "p";
+  S.draw = d; S.started = true; S.res = {}; S.bets = []; S.board = {}; S.wr = {}; S.last = {}; S.wc = {}; S.fin = {}; S.t0 = null; S.tab = "p";
   dirty(); syncBoards();
 }
-function resetTournament() { S.defer = {}; S.started = false; S.draw = null; S.res = {}; S.board = {}; S.wr = {}; S.last = {}; S.wc = {}; S.fin = {}; S.t0 = null; }
+function resetTournament() { S.bets = []; S.defer = {}; S.started = false; S.draw = null; S.res = {}; S.board = {}; S.wr = {}; S.last = {}; S.wc = {}; S.fin = {}; S.t0 = null; }
 function hasResults() { return Object.keys(S.res).some(function (k) { var r = S.res[k]; return r && (r.la != null || r.lb != null); }); }
 
 function saveResult(id, form) {
@@ -751,6 +874,10 @@ function viewSetup() {
     '<label class="chk"><input type="checkbox" data-sb="auto"' + (S.auto ? " checked" : "") + "> " + t("Nächstes Spiel automatisch ansagen") + "</label>" +
     '<label class="chk"><input type="checkbox" data-sb="writer"' + (S.writer ? " checked" : "") + "> " + t("Schreiber einteilen") + "</label>" +
     '<p class="mu">' + t("Der Verlierer des letzten Spiels am Board schreibt das nächste Spiel. Ist er selbst dran, übernimmt ein anderer freier Spieler.") + "</p></div>";
+  h += '<div class="card"><h2>🍺 ' + t("Schluck-Wetten (Partymodus)") + '</h2><label class="chk"><input type="checkbox" data-bt="on"' + (S.bet.on ? " checked" : "") + "> " + t("Schluck-Wetten (Partymodus)") + "</label>" +
+    (S.bet.on ? '<label class="chk"><input type="checkbox" data-bt="all"' + (S.bet.all ? " checked" : "") + "> " + t("Alle dürfen wetten (nicht nur Ausgeschiedene)") + "</label>" +
+      '<div class="row"><label>' + t("Max. Schlücke pro Wette") + " " + sel("betmax", [3, 5, 10, 15, 20].map(function (x) { return [x, x]; }), S.bet.max) + "</label></div>" : "") +
+    '<p class="mu">' + t("Ausgeschiedene dürfen auf die restlichen Spiele Schlücke setzen. Richtig getippt: Einsatz × Quote verteilen. Falsch: Einsatz selbst trinken.") + "</p></div>";
   if (!locked) h += (UI.err.start ? '<p class="wa">' + esc(UI.err.start) + "</p>" : "") + '<button class="b p big-btn" data-do="start">🎯 ' + t("Auslosen und starten") + "</button>";
   h += backupCard();
   h += '<div class="danger row">' + (S.started || S.players.length ? confirmBtn("demo", "🎲 " + t("Beispielturnier laden")) : '<button class="b" data-do="demo">🎲 ' + t("Beispielturnier laden") + "</button>") + confirmBtn("all", "🗑 " + t("Alles löschen")) + '</div><p class="mu">' + t("Lädt ein Beispiel mit 12 Spielern, fertiger Gruppenphase und laufender K.O.-Runde. Der aktuelle Stand wird ersetzt.") + "</p>";
@@ -1024,7 +1151,7 @@ function viewTv() {
 }
 
 /* ---------- Rendern ---------- */
-var TABS = [["t", "Teilnehmer"], ["g", "Spielplan"], ["p", "Boards"], ["k", "Turnierbaum"], ["s", "Statistik"]];
+var TABS = [["t", "Teilnehmer"], ["g", "Spielplan"], ["p", "Boards"], ["k", "Turnierbaum"], ["w", "Wetten"], ["s", "Statistik"]];
 function render() {
   dirty();
   if (S.started) { while (swissNext()) dirty(); dirty(); syncBoards(); dirty(); save(); }
@@ -1035,9 +1162,9 @@ function render() {
   if (intro) { intro.textContent = t("Plane dein lokales Dartturnier kostenlos: Teilnehmer eintragen, auslosen, Spiele auf die Boards verteilen und alles live auf dem TV zeigen. Alles bleibt in deinem Browser gespeichert."); }
   var nav = document.getElementById("tp-nav"), view = document.getElementById("tp-view");
   if (UI.tv) { nav.innerHTML = ""; view.innerHTML = viewTv(); return; }
-  var tabs = TABS.filter(function (x) { return !(x[0] === "k" && (S.fmt === "league" || (S.fmt === "swiss" && S.sko < 2))); });
+  var tabs = TABS.filter(function (x) { return !(x[0] === "w" && !(S.bet && S.bet.on)) && !(x[0] === "k" && (S.fmt === "league" || (S.fmt === "swiss" && S.sko < 2))); });
   nav.innerHTML = tabs.map(function (x) { return '<button class="' + (S.tab === x[0] ? "on" : "") + '" data-do="tab" data-v="' + x[0] + '">' + t(x[1]) + "</button>"; }).join("");
-  view.innerHTML = S.tab === "t" ? viewSetup() : S.tab === "g" ? viewSchedule() : S.tab === "p" ? viewBoards() : S.tab === "k" ? viewBracket() : viewStats();
+  view.innerHTML = S.tab === "t" ? viewSetup() : S.tab === "g" ? viewSchedule() : S.tab === "p" ? viewBoards() : S.tab === "k" ? viewBracket() : S.tab === "w" ? viewBets() : viewStats();
 }
 
 /* ---------- Ereignisse ---------- */
@@ -1047,6 +1174,7 @@ function setOpt(k, v) {
   if (k === "house") { S.house = Math.min(100, Math.max(0, num(v) || 0)); return; }
   if (k === "cur") { S.cur = String(v).trim().slice(0, 4); return; }
   if (k === "name") { S.name = String(v).slice(0, 60); return; }
+  if (k === "betmax") { S.bet.max = +v; return; }
   if (k === "ng" || k === "adv" || k === "nb" || k === "sr" || k === "sko" || k === "ltop") { S[k] = +v; return; }
   var mk = k.split("_");
   if (mk[0] === "bo") { var m = mode(mk[1]); if (v === "fix2") { m.fix2 = true; m.bo = 3; } else { m.fix2 = false; m.bo = +v; } return; }
@@ -1080,6 +1208,7 @@ root.addEventListener("click", function (e) {
     case "splitadd": if (S.split.length < 4) S.split.push(0); break;
     case "splitdel": if (S.split.length > 1) S.split.pop(); break;
     case "edit": UI.edit = id; break;
+    case "delbet": S.bets = (S.bets || []).filter(function (bt) { return bt.id !== +id || betState(bt); }); break;
     case "cancel": UI.edit = null; break;
     case "call": callNext(+bi); break;
     case "assign": if (!S.board[+bi]) { S.board[+bi] = id; S.t0 = S.t0 || Date.now(); if (S.writer) { var w = pickWriter(+bi, id); if (w != null) { S.wr[id] = w; S.wc[w] = (S.wc[w] || 0) + 1; } } } break;
@@ -1100,6 +1229,7 @@ root.addEventListener("change", function (e) {
   var el = e.target;
   if (el.matches("[data-set]")) { setOpt(el.getAttribute("data-set"), el.value); }
   else if (el.matches("[data-sb]")) { S[el.getAttribute("data-sb")] = el.checked; }
+  else if (el.matches("[data-bt]")) { S.bet = Object.assign({ on: false, all: false, max: 10 }, S.bet); S.bet[el.getAttribute("data-bt")] = el.checked; }
   else if (el.matches("[data-split]")) { S.split[+el.getAttribute("data-split")] = Math.max(0, num(el.value) || 0); }
   else if (el.matches("[data-pf]")) { var p = P(+el.getAttribute("data-id")); if (p) p[el.getAttribute("data-pf")] = el.checked; }
   else if (el.matches('[data-do="importfile"]')) { var f = el.files && el.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { importData(rd.result); dirty(); save(); render(); }; rd.readAsText(f); return; }
@@ -1107,6 +1237,8 @@ root.addEventListener("change", function (e) {
   dirty(); save(); render();
 });
 root.addEventListener("submit", function (e) {
+  var fb = e.target.closest("form.bet");
+  if (fb) { e.preventDefault(); placeBet(fb.getAttribute("data-id"), fb); dirty(); save(); render(); return; }
   var f = e.target.closest("form.edit"); if (!f) return;
   e.preventDefault();
   saveResult(f.getAttribute("data-id"), f);
