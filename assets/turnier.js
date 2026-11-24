@@ -112,7 +112,13 @@ var EN = {
   "Noch niemand ausgeschieden – Wetten starten, sobald der Erste raus ist.": "Nobody is out yet – betting starts once the first player is eliminated.",
   "Gerade ist kein Spiel offen, auf das gewettet werden kann.": "No match open for betting right now.",
   "Quoten aus Average und Leg-Differenz im Turnier. Ohne Daten gilt 50:50.": "Odds from average and leg difference in this tournament. Without data it is 50:50.",
-  "Wette löschen": "Delete bet", "Pause": "Resting", "schreibt an Board {0}": "scoring board {0}",
+  "Wette löschen": "Delete bet", "Pause": "Resting", "Wetten vom Handy": "Bets from phones", "Handy-Wetten starten": "Start phone betting", "verbunden": "connected", "verbinde …": "connecting …",
+  "Jeder öffnet einen Link auf seinem Handy und wettet selbst. Die Wetten landen automatisch hier. Läuft über den kostenlosen Dienst ntfy.sh, solange diese Seite offen ist.": "Everyone opens a link on their phone and bets themselves. Bets arrive here automatically. Runs via the free service ntfy.sh while this page is open.",
+  "Link in die WhatsApp-Gruppe schicken. Wetten kommen automatisch hier an, solange diese Seite offen ist.": "Send the link to your WhatsApp group. Bets arrive here automatically while this page is open.",
+  "Link teilen": "Share link", "Beenden": "Stop", "Link kopiert.": "Link copied.", "Wer bist du?": "Who are you?", "Das Turnier ist vorbei.": "The tournament is over.",
+  "Du spielst selbst – keine Wette möglich.": "You are playing – no bet possible.", "Wetten nur für Ausgeschiedene.": "Only eliminated players can bet.", "Genaues Ergebnis": "Exact score",
+  "Tipp antippen, dann Schlücke wählen.": "Tap a pick, then choose sips.", "Meine Wetten": "My bets", "gesendet": "sent", "Wette abgelehnt": "Bet rejected", "Noch keine Wetten.": "No bets yet.",
+  "Wetten der anderen": "Other bets", "Senden fehlgeschlagen – bitte nochmal.": "Sending failed – please try again.", "Warte auf den Turnier-Laptop … Die Seite mit dem Turnier muss dort offen sein.": "Waiting for the tournament laptop … the tournament page must be open there.", "schreibt an Board {0}": "scoring board {0}",
   "Voraussichtliches Ende": "Expected finish", "Ansage an": "Announcements on", "Ansage aus": "Announcements off",
   "Endstand teilen": "Share final standings", "Zwischenstand teilen": "Share current standings", "Endstand": "Final standings", "Zwischenstand": "Current standings",
   "Farbe ändern": "Change colour", "Trotzdem hier spielen (der Plan wird angepasst):": "Play here anyway (the plan adapts):", "Hier spielen": "Play here", "Abweichend vom Plan – der Rest wird neu verteilt": "Off plan – the rest gets redistributed", "wartet, bis beide frei sind": "waiting until both are free", "Liga: Jeder spielt an jedem Board gleich oft.": "League: everyone plays equally often on each board.", "Mehr Statistik": "More stats", "ab 100": "100+", "Wetten auf dieses Spiel": "Bets on this match", "Statt Bier geht alles, was im Glas ist.": "Anything in your glass counts, not just beer.",
@@ -580,13 +586,7 @@ function betState(bt) {
 function stakeOpts() { var mx = (S.bet && S.bet.max) || 10, o = [1, 3, 5, 10].filter(function (v) { return v <= mx; }); if (o.indexOf(mx) < 0) o.push(mx); return o; }
 function placeBet(id, form, st) {
   var g = function (n) { var el = form.querySelector('[name="' + n + '"]'); return el ? el.value : ""; };
-  var by = +g("by"), pick = g("pick"), stake = Math.round(num(st != null ? st : g("stake")) || 0);
-  if (!betOpen(id) || bettors(id).indexOf(by) < 0 || !pick || stake < 1) return;
-  stake = Math.min(stake, S.bet.max || 10);
-  var o = outcomes(id), p = players(id), bt = { id: S.bid++, m: id, by: by, stake: stake };
-  if (pick.charAt(0) === "w") { var side = +pick.slice(1); bt.kind = "w"; bt.pick = p[side]; bt.q = quote(o.win[side]); }
-  else { var ab = pick.slice(1); var hit = o.exact.filter(function (x) { return x.a + ":" + x.b === ab; })[0]; if (!hit) return; bt.kind = "x"; bt.pick = ab; bt.q = quote(hit.pr); }
-  S.bets = S.bets || []; S.bets.push(bt);
+  addBet(id, +g("by"), g("pick"), Math.round(num(st != null ? st : g("stake")) || 0));
 }
 function betLine(bt) {
   var p = players(bt.m), st = betState(bt);
@@ -598,6 +598,7 @@ function betLine(bt) {
 function viewBets() {
   if (!S.started) return startHint();
   var h = '<p class="mu">' + t("Ausgeschiedene dürfen auf die restlichen Spiele Schlücke setzen. Richtig getippt: Einsatz × Quote verteilen. Falsch: Einsatz selbst trinken.") + " " + t("Quoten aus Average und Leg-Differenz im Turnier. Ohne Daten gilt 50:50.") + " " + t("Statt Bier geht alles, was im Glas ist.") + "</p>";
+  h += liveCard();
   var open = B().list.filter(function (m) { return betOpen(m.id) && bettors(m.id).length; });
   if (!S.bet.all && !Object.keys(eliminated()).length) h += '<div class="card"><p class="mu">' + t("Noch niemand ausgeschieden – Wetten starten, sobald der Erste raus ist.") + "</p></div>";
   else if (!open.length) h += '<div class="card"><p class="mu">' + t("Gerade ist kein Spiel offen, auf das gewettet werden kann.") + "</p></div>";
@@ -1440,6 +1441,159 @@ function announce() {
   }
 }
 
+/* ---------- Handy-Wetten (live über ntfy.sh) ----------
+   Der Turnier-Laptop schickt Spiele + Quoten an <topic>-s, die Handys schicken Wetten an <topic>-b.
+   Kein Konto, kein eigener Server. Der Laptop prüft jede Wette selbst (wer darf, Max-Einsatz, Quote). */
+var NTFY = "https://ntfy.sh/";
+function liveId() { var c = "abcdefghjkmnpqrstuvwxyz23456789", s = ""; for (var i = 0; i < 12; i++) s += c.charAt(Math.floor(Math.random() * c.length)); return s; }
+function liveUrl() { return location.origin + location.pathname + "?wette=" + S.live; }
+function strip(h) { return String(h).replace(/<[^>]*>/g, ""); }
+function liveOn() { return !!(S.live && S.started && S.bet && S.bet.on); }
+function addBet(id, by, pick, stake, nonce) {
+  if (!betOpen(id)) return "zu";
+  if (bettors(id).indexOf(by) < 0) return "darf nicht";
+  stake = Math.round(+stake || 0); if (!pick || stake < 1) return "Einsatz";
+  stake = Math.min(stake, S.bet.max || 10);
+  var o = outcomes(id), p = players(id), bt = { id: S.bid++, m: id, by: by, stake: stake };
+  if (pick.charAt(0) === "w") { var side = +pick.slice(1); if (side !== 0 && side !== 1) return "Tipp"; bt.kind = "w"; bt.pick = p[side]; bt.q = quote(o.win[side]); }
+  else { var ab = pick.slice(1); var hit = o.exact.filter(function (x) { return x.a + ":" + x.b === ab; })[0]; if (!hit) return "Tipp"; bt.kind = "x"; bt.pick = ab; bt.q = quote(hit.pr); }
+  if (nonce) bt.n = String(nonce).slice(0, 16);
+  S.bets = S.bets || []; S.bets.push(bt);
+  return "";
+}
+function betText(bt) { var p = players(bt.m); return bt.kind === "w" ? t("Sieg") + " " + nm(bt.pick) : nm(p[0]) + " " + bt.pick + " " + nm(p[1]); }
+function livePayload() {
+  var open = B().list.filter(function (m) { return betOpen(m.id); }), el = eliminated();
+  var o = {
+    v: 1, n: S.name || "", ts: Date.now(), mx: S.bet.max || 10, all: !!S.bet.all, done: !!podium(),
+    pl: S.draw.ids.map(function (id) { return [id, nm(id), pc(id), el[id] ? 1 : 0]; }),
+    m: open.map(function (m) {
+      var p = players(m.id), oc = outcomes(m.id), r = S.res[m.id];
+      return { i: m.id, l: m.label, md: strip(modeTxt(m.st)), a: p[0], b: p[1], on: onBoard(m.id) + 1, w: [quote(oc.win[0]), quote(oc.win[1])],
+        x: oc.exact.map(function (x) { return [x.a + ":" + x.b, quote(x.pr)]; }), by: bettors(m.id) };
+    }),
+    bt: (S.bets || []).slice(-25).reverse().map(function (bt) { var st = betState(bt); return [bt.n || "", bt.by, betText(bt), bt.stake, bt.q, st ? (st.won ? 1 : -1) : 0, st ? st.sips : 0]; }),
+    rj: S.liveRej || {}
+  };
+  var s = JSON.stringify(o);
+  while (unescape(encodeURIComponent(s)).length > 3800 && o.bt.length) { o.bt.pop(); s = JSON.stringify(o); }
+  return s;
+}
+function livePush(force) {
+  if (!liveOn()) return;
+  var s = livePayload(), key = s.replace(/"ts":\d+,/, "");
+  var now = Date.now();
+  if (!force && key === UI.lpKey && now - (UI.lpAt || 0) < 600000) return;   // unverändert: alle 10 Min. trotzdem einmal senden
+  if (now - (UI.lpAt || 0) < 1500) { clearTimeout(UI.lpT); UI.lpT = setTimeout(function () { livePush(force); }, 1600); return; }
+  UI.lpKey = key; UI.lpAt = now;
+  try { fetch(NTFY + "l26-" + S.live + "-s", { method: "POST", body: s }).then(function (r) { UI.lpOk = r.ok; }, function () { UI.lpOk = false; }); } catch (e) {}
+}
+function liveListen() {
+  if (!liveOn()) { if (UI.es) { UI.es.close(); UI.es = null; } return; }
+  if (UI.es && UI.esFor === S.live) return;
+  if (UI.es) UI.es.close();
+  var es; try { es = new EventSource(NTFY + "l26-" + S.live + "-b/sse?since=" + encodeURIComponent(S.liveSince || "all")); } catch (e) { return; }
+  UI.es = es; UI.esFor = S.live;
+  es.onopen = function () { if (!UI.esOk) { UI.esOk = true; if (S.tab === "w" && !UI.tv) softRender(); } };
+  es.onmessage = function (ev) {
+    var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+    if (d.event && d.event !== "message") return;
+    if (d.id) S.liveSince = d.id;
+    var b; try { b = JSON.parse(d.message); } catch (e) { save(); return; }
+    if (!b || b.t !== "bet" || !b.n) { save(); return; }
+    S.liveSeen = S.liveSeen || {};
+    if (S.liveSeen[b.n]) { save(); return; }
+    S.liveSeen[b.n] = 1;
+    dirty(); var err = addBet(String(b.m), +b.by, String(b.pick || ""), b.stake, b.n);
+    if (err) { S.liveRej = S.liveRej || {}; S.liveRej[b.n] = err; var ks = Object.keys(S.liveRej); if (ks.length > 12) delete S.liveRej[ks[0]]; }
+    dirty(); save(); softRender();
+  };
+  es.onerror = function () { UI.esOk = false; es.close(); if (UI.es === es) UI.es = null; setTimeout(function () { liveListen(); }, 3000); };
+}
+// Nicht neu zeichnen, während jemand gerade ein Ergebnis eintippt
+function softRender() {
+  var a = document.activeElement;
+  if (a && root.contains(a) && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) { UI.later = true; return; }
+  render();
+}
+root.addEventListener("focusout", function () { setTimeout(function () { if (UI.later && !(document.activeElement && root.contains(document.activeElement) && /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName))) { UI.later = false; render(); } }, 50); });
+function liveCard() {
+  if (!S.live) return '<div class="card"><h2>📱 ' + t("Wetten vom Handy") + '</h2><p class="mu">' + t("Jeder öffnet einen Link auf seinem Handy und wettet selbst. Die Wetten landen automatisch hier. Läuft über den kostenlosen Dienst ntfy.sh, solange diese Seite offen ist.") + '</p><button class="b p" data-do="liveon">📱 ' + t("Handy-Wetten starten") + "</button></div>";
+  var u = liveUrl();
+  return '<div class="card"><h2>📱 ' + t("Wetten vom Handy") + ' <span class="mu">· ' + (UI.esOk ? '<span class="w">● ' + t("verbunden") + "</span>" : t("verbinde …")) + "</span></h2>" +
+    '<p class="mu">' + t("Link in die WhatsApp-Gruppe schicken. Wetten kommen automatisch hier an, solange diese Seite offen ist.") + "</p>" +
+    '<div class="row"><input readonly value="' + esc(u) + '" style="flex:1;min-width:200px" onclick="this.select()"><button class="b p" data-do="liveshare">📤 ' + t("Link teilen") + '</button><button class="b" data-do="liveoff">' + t("Beenden") + "</button></div>" +
+    (UI.liveMsg ? '<p class="w">' + esc(UI.liveMsg) + "</p>" : "") + "</div>";
+}
+
+/* ---------- Handy-Ansicht für Wettende ---------- */
+function guest(id) {
+  var G = { st: null, me: null, pend: {}, pick: {}, ok: false, last: "" }, GK = "l26-wette-" + id;
+  try { var sv = JSON.parse(localStorage.getItem(GK) || "{}"); G.me = sv.me != null ? sv.me : null; G.pend = sv.pend || {}; } catch (e) {}
+  function keep() { try { localStorage.setItem(GK, JSON.stringify({ me: G.me, pend: G.pend })); } catch (e) {} }
+  var nav = document.getElementById("tp-nav"), view = document.getElementById("tp-view"), intro = document.getElementById("tp-intro"), h1 = document.getElementById("tp-h1");
+  nav.innerHTML = ""; if (intro) intro.hidden = true;
+  function q(v) { return fmtQ(v); }
+  function name(pid) { var p = G.st && G.st.pl.filter(function (x) { return x[0] === pid; })[0]; return p ? '<span style="color:' + p[2] + '">' + esc(p[1]) + "</span>" : "?"; }
+  function draw() {
+    if (h1) h1.textContent = "🍺 " + (G.st && G.st.n ? G.st.n : t("Schluck-Wetten"));
+    var h = "";
+    if (!G.st) { view.innerHTML = '<div class="card"><p>' + (G.ok ? t("Warte auf den Turnier-Laptop … Die Seite mit dem Turnier muss dort offen sein.") : t("verbinde …")) + "</p></div>"; return; }
+    var st = G.st;
+    h += '<div class="card"><h2>' + t("Wer bist du?") + '</h2><div class="chips gwho">' + st.pl.map(function (p) {
+      return '<button class="b' + (G.me === p[0] ? " p" : "") + '" data-g="me" data-v="' + p[0] + '"><span class="dot" style="background:' + p[2] + '"></span>' + esc(p[1]) + "</button>"; }).join("") + "</div></div>";
+    if (G.me == null) { view.innerHTML = h; return; }
+    if (st.done) h += '<div class="card"><p>' + t("Das Turnier ist vorbei.") + "</p></div>";
+    else if (!st.m.length) h += '<div class="card"><p class="mu">' + t("Gerade ist kein Spiel offen, auf das gewettet werden kann.") + "</p></div>";
+    st.m.forEach(function (m) {
+      var can = m.by.indexOf(G.me) >= 0, pk = G.pick[m.i];
+      h += '<div class="card"><h2>' + name(m.a) + ' <span class="mu">' + t("gegen") + "</span> " + name(m.b) + '</h2><p class="mu">' + esc(m.l) + " · " + esc(m.md) + (m.on ? " · 🎯 Board " + m.on : "") + "</p>";
+      if (!can) { h += '<p class="mu">' + t(m.a === G.me || m.b === G.me ? "Du spielst selbst – keine Wette möglich." : "Wetten nur für Ausgeschiedene.") + "</p></div>"; return; }
+      h += '<div class="chips">' + [0, 1].map(function (s) { var v = "w" + s; return '<button class="chip gpick' + (pk === v ? " on" : "") + '" data-g="pick" data-m="' + esc(m.i) + '" data-v="' + v + '"><div class="mu">' + t("Sieg") + " " + name(s ? m.b : m.a) + "</div><div><b>" + q(m.w[s]) + "</b></div></button>"; }).join("") + "</div>" +
+        '<details class="gx"' + (pk && pk.charAt(0) === "x" ? " open" : "") + '><summary class="mu">' + t("Genaues Ergebnis") + '</summary><div class="chips">' + m.x.map(function (x) { var v = "x" + x[0]; return '<button class="chip gpick' + (pk === v ? " on" : "") + '" data-g="pick" data-m="' + esc(m.i) + '" data-v="' + esc(v) + '"><div class="mu">' + esc(x[0]) + "</div><div><b>" + q(x[1]) + "</b></div></button>"; }).join("") + "</div></details>" +
+        (pk ? '<div class="stakes"><span class="mu">' + t("Schlücke") + ":</span>" + [1, 3, 5, 10].filter(function (v) { return v <= st.mx; }).concat([1, 3, 5, 10].indexOf(st.mx) < 0 ? [st.mx] : []).map(function (v) { return '<button class="b p" data-g="bet" data-m="' + esc(m.i) + '" data-v="' + v + '">🍺 ' + v + "</button>"; }).join("") + "</div>" : '<p class="mu">' + t("Tipp antippen, dann Schlücke wählen.") + "</p>") + "</div>";
+    });
+    var mine = st.bt.filter(function (b) { return b[1] === G.me; }), seen = {};
+    st.bt.forEach(function (b) { if (b[0]) seen[b[0]] = 1; });
+    Object.keys(G.pend).forEach(function (n) { if (seen[n] || (st.rj && st.rj[n])) { if (st.rj && st.rj[n]) G.last = t("Wette abgelehnt") + ": " + G.pend[n].txt; delete G.pend[n]; keep(); } });
+    var pend = Object.keys(G.pend).map(function (n) { return G.pend[n]; });
+    h += '<div class="card"><h2>' + t("Meine Wetten") + "</h2>" + (G.last ? '<p class="wa">' + esc(G.last) + "</p>" : "") +
+      pend.map(function (p) { return '<div class="pl"><span class="nm">' + esc(p.txt) + " · " + p.stake + " " + t("Schlücke") + '</span><span class="mu">⏳ ' + t("gesendet") + "</span></div>"; }).join("") +
+      (mine.map(function (b) { return '<div class="pl"><span class="nm">' + esc(b[2]) + " · " + b[3] + " " + t("Schlücke") + ' <span class="mu">(' + q(b[4]) + ")</span></span>" + (b[5] > 0 ? '<b class="w">✓ ' + t("verteilt {0}", b[6]) + "</b>" : b[5] < 0 ? '<b class="wa">✗ ' + t("trinkt {0}", b[6]) + "</b>" : '<span class="mu">' + t("offen") + "</span>") + "</div>"; }).join("") ||
+        (pend.length ? "" : '<p class="mu">' + t("Noch keine Wetten.") + "</p>")) + "</div>";
+    var others = st.bt.filter(function (b) { return b[1] !== G.me; }).slice(0, 8);
+    if (others.length) h += '<div class="card"><h2>' + t("Wetten der anderen") + "</h2>" + others.map(function (b) { return '<div class="pl"><span class="nm"><b>' + name(b[1]) + "</b>: " + esc(b[2]) + " · " + b[3] + '</span><span class="mu">' + (b[5] > 0 ? "✓" : b[5] < 0 ? "✗" : "…") + "</span></div>"; }).join("") + "</div>";
+    view.innerHTML = h;
+  }
+  view.addEventListener("click", function (e) {
+    var el = e.target.closest("[data-g]"); if (!el) return;
+    var g = el.getAttribute("data-g"), v = el.getAttribute("data-v"), m = el.getAttribute("data-m");
+    if (g === "me") { G.me = +v; keep(); }
+    if (g === "pick") G.pick[m] = G.pick[m] === v ? null : v;
+    if (g === "bet") {
+      var pk = G.pick[m], mt = G.st.m.filter(function (x) { return x.i === m; })[0]; if (!pk || !mt) return;
+      var n = liveId(), txt = pk.charAt(0) === "w" ? t("Sieg") + " " + strip(name(pk === "w0" ? mt.a : mt.b)) : strip(name(mt.a)) + " " + pk.slice(1) + " " + strip(name(mt.b));
+      G.pend[n] = { txt: txt, stake: +v, at: Date.now() }; G.pick[m] = null; G.last = ""; keep();
+      fetch(NTFY + "l26-" + id + "-b", { method: "POST", body: JSON.stringify({ t: "bet", n: n, by: G.me, m: m, pick: pk, stake: +v }) })
+        .then(function (r) { if (!r.ok) throw 0; }).catch(function () { delete G.pend[n]; G.last = t("Senden fehlgeschlagen – bitte nochmal."); keep(); draw(); });
+    }
+    draw();
+  });
+  var since = "15m";
+  function listen() {
+    var es; try { es = new EventSource(NTFY + "l26-" + id + "-s/sse?since=" + encodeURIComponent(since)); } catch (e) { return; }
+    es.onopen = function () { G.ok = true; if (!G.st) setTimeout(draw, 2500); };
+    es.onmessage = function (ev) {
+      var d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+      if (d.event && d.event !== "message") return;
+      if (d.id) since = d.id;
+      try { var s = JSON.parse(d.message); if (s && s.v === 1 && (!G.st || s.ts >= G.st.ts)) { G.st = s; draw(); } } catch (e) {}
+    };
+    es.onerror = function () { es.close(); G.ok = false; setTimeout(listen, 3000); };
+  }
+  draw(); listen();
+}
+
 /* ---------- Rendern ---------- */
 // TV: alles so gross zoomen, dass der Bildschirm in der Höhe ausgefüllt ist
 function fitTv() {
@@ -1465,6 +1619,7 @@ function render() {
   if (intro) { intro.textContent = t("Plane dein lokales Dartturnier kostenlos: Teilnehmer eintragen, auslosen, Spiele auf die Boards verteilen und alles live auf dem TV zeigen. Alles bleibt in deinem Browser gespeichert."); intro.hidden = !!S.started; }
   var nav = document.getElementById("tp-nav"), view = document.getElementById("tp-view");
   announce();   // Ansage läuft weiter, auch wenn man kurz aus der TV-Ansicht raus ist
+  liveListen(); livePush();
   if (UI.tv) { nav.innerHTML = ""; view.innerHTML = viewTv(); fitTv(); return; }
   root.style.zoom = "";
   var tabs = TABS.filter(function (x) { return !(x[0] === "w" && !(S.bet && S.bet.on)) && !(x[0] === "k" && (S.fmt === "league" || (S.fmt === "swiss" && S.sko < 2))); });
@@ -1524,6 +1679,12 @@ root.addEventListener("click", function (e) {
     case "say": UI.say = !UI.say; UI.ann = {}; for (var sb = 0; sb < S.nb; sb++) UI.ann[sb] = S.board[sb] || null;
       if (UI.say && window.speechSynthesis) speak(lang() === "en" ? "Announcements on." : "Ansagen an."); break;
     case "share": shareImage(); return;
+    case "liveon": S.live = liveId(); S.liveSince = null; S.liveSeen = {}; S.liveRej = {}; UI.lpKey = null; break;
+    case "liveoff": S.live = null; UI.liveMsg = ""; break;
+    case "liveshare":
+      var lu = liveUrl(), lt = (lang() === "en" ? "Place your bets: " : "Hier wetten: ") + lu;
+      if (navigator.share) { navigator.share({ title: S.name || "Schluck-Wetten", text: lt, url: lu }).catch(function () {}); return; }
+      try { navigator.clipboard.writeText(lu); UI.liveMsg = t("Link kopiert."); } catch (x) {} break;
     case "unboard": var mid = S.board[+bi]; S.board[+bi] = null; if (mid) { if (S.ts) delete S.ts[mid]; S.defer = S.defer || {}; S.defer[mid] = Date.now(); if (S.wr[mid] != null) { S.wc[S.wr[mid]]--; delete S.wr[mid]; } } break;
     case "tv": UI.tv = true; try { var rq = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (rq && rq.catch) rq.catch(function () {}); } catch (x) {} break;
     case "tvoff": UI.tv = false; try { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); if (location.hash === "#tv") history.replaceState(null, "", location.pathname + location.search); } catch (x) {} break;
@@ -1563,10 +1724,13 @@ function importData(txt) {
     S = Object.assign(fresh(), o); S.tab = "t"; UI.imp = { ok: true, msg: t("Stand wiederhergestellt.") };
   } catch (x) { UI.imp = { ok: false, msg: t("Import fehlgeschlagen: Die Daten sind ungültig.") }; }
 }
-window.addEventListener("storage", function (e) { if (e.key === KEY && e.newValue) { try { S = Object.assign(fresh(), JSON.parse(e.newValue)); } catch (x) {} render(); } });
-document.addEventListener("l26:lang", function () { render(); });
+window.addEventListener("storage", function (e) { if (GUEST) return; if (e.key === KEY && e.newValue) { try { S = Object.assign(fresh(), JSON.parse(e.newValue)); } catch (x) {} render(); } });
+document.addEventListener("l26:lang", function () { if (!GUEST) render(); });
 setInterval(function () { root.querySelectorAll("[data-w]").forEach(function (el) { var ts = +el.getAttribute("data-w"); if (ts) el.textContent = fmtTime(ts); }); }, 1000);
 
+var GUEST = new URLSearchParams(location.search).get("wette");
+if (GUEST && /^[a-z0-9]{6,20}$/.test(GUEST)) { document.body.classList.add("guest"); guest(GUEST); return; }
+GUEST = null;
 if (root.getAttribute("data-demo") === "auto" && !S.started && !S.players.length) { loadDemo(); dirty(); save(); }
 render();
 })();
