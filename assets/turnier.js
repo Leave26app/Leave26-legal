@@ -499,7 +499,7 @@ function stats() {
 // Spielstärke aus diesem Turnier: Average (falls eingetragen) plus Leg-Differenz pro Spiel
 function strength() {
   var T = {}, all = [];
-  (S.draw ? S.draw.ids : []).forEach(function (id) { T[id] = { av: [], ld: 0, n: 0 }; });
+  (S.draw ? S.draw.ids : []).forEach(function (id) { T[id] = { av: [], ld: 0, n: 0, wl: 0 }; });
   B().list.forEach(function (m) {
     var r = S.res[m.id], res = resolve(m.id);
     if (!r || !res.done || res.bye) return;
@@ -508,14 +508,16 @@ function strength() {
     if (r.a2 != null) { b.av.push(r.a2); all.push(r.a2); }
     var d = r.g1 != null && r.g2 != null ? r.g1 - r.g2 : isSets(m.st) ? (r.la - r.lb) * 2 : r.la - r.lb;
     a.ld += d; b.ld -= d; a.n++; b.n++;
+    if (r.la > r.lb) { a.wl++; b.wl--; } else if (r.lb > r.la) { b.wl++; a.wl--; }
   });
   var base = all.length ? all.reduce(function (s, v) { return s + v; }, 0) / all.length : 50, out = {};
   Object.keys(T).forEach(function (k) {
     var x = T[k], av = x.av.length ? x.av.reduce(function (s, v) { return s + v; }, 0) / x.av.length : base;
-    // Ein Abend ist wenig Datenbasis: Averages und Leg-Differenz kräftig Richtung Feld ziehen,
-    // sonst werden die Quoten über Leg → Satz → Match unrealistisch extrem.
+    // Die Bilanz im Turnier zählt am meisten (Siege, dann Legs), der Average nur als Feinschliff.
+    // Ein Abend ist wenig Datenbasis: alles Richtung Feld ziehen, sonst schaukeln sich
+    // die Quoten über Leg → Satz → Match unrealistisch auf.
     av = (av * x.av.length + base * 4) / (x.av.length + 4);
-    out[k] = av + (x.n ? 1.5 * x.ld / (x.n + 2) : 0);
+    out[k] = base + 0.3 * (av - base) + (x.n ? (2 * x.wl + 1.5 * x.ld) / (x.n + 2) : 0);
   });
   return out;
 }
