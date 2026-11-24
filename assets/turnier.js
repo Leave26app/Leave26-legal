@@ -112,7 +112,7 @@ var EN = {
   "Noch niemand ausgeschieden – Wetten starten, sobald der Erste raus ist.": "Nobody is out yet – betting starts once the first player is eliminated.",
   "Gerade ist kein Spiel offen, auf das gewettet werden kann.": "No match open for betting right now.",
   "Quoten aus Average und Leg-Differenz im Turnier. Ohne Daten gilt 50:50.": "Odds from average and leg difference in this tournament. Without data it is 50:50.",
-  "Wette löschen": "Delete bet", "Wetten auf dieses Spiel": "Bets on this match", "Statt Bier geht alles, was im Glas ist.": "Anything in your glass counts, not just beer.",
+  "Wette löschen": "Delete bet", "Mehr Statistik": "More stats", "ab 100": "100+", "Wetten auf dieses Spiel": "Bets on this match", "Statt Bier geht alles, was im Glas ist.": "Anything in your glass counts, not just beer.",
   "Play-offs für die Top": "Play-offs for the top", "Spiel um die Rote Laterne": "Wooden spoon match",
   "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach steigen die Besten nach Ligaplatz in die Play-offs ein: 3. gegen 4., der Sieger gegen den 2., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then the best enter the play-offs by league position: 3rd vs 4th, the winner vs 2nd, the winner in the final vs the league winner.",
   "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach spielt der 2. gegen den 3., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then 2nd plays 3rd, the winner meets the league winner in the final.",
@@ -773,6 +773,7 @@ function saveResult(id, form) {
   var r = { la: g("la"), lb: g("lb"), a1: g("a1"), a2: g("a2"), o1: g("o1"), o2: g("o2"), h1: g("h1"), h2: g("h2"), b1: g("b1"), b2: g("b2"), g1: g("g1"), g2: g("g2") };
   ["la", "lb", "o1", "o2", "h1", "h2", "b1", "b2", "g1", "g2"].forEach(function (k) { if (r[k] != null) r[k] = Math.max(0, Math.round(r[k])); });
   if (r.h1 != null && r.h1 > 170) r.h1 = 170; if (r.h2 != null && r.h2 > 170) r.h2 = 170;
+  if (r.h1 != null && r.h1 < 100) r.h1 = null; if (r.h2 != null && r.h2 < 100) r.h2 = null;   // High Finish erst ab 100
   if (!finished(r, m.st)) {
     UI.err[id] = fix2(m.st) ? t("Bei 2 Legs fix muss die Summe 2 sein (2:0, 1:1, 0:2).") : isSets(m.st) ? t("Der Sieger braucht genau {0} Sätze, der Verlierer weniger.", need(m.st)) : t("Der Sieger braucht genau {0} Legs, der Verlierer weniger.", need(m.st));
     return false;
@@ -958,8 +959,9 @@ function matchBox(id, opts) {
       (isSets(m.st) ? '<p class="mu ctr">' + t("Ergebnis in Sätzen eintragen.") + "</p>" +
         '<div class="a">' + f("g1", "–") + "<span>" + t("Legs gesamt") + "</span>" + f("g2", "–") + "</div>" +
         (m.st === "g" ? '<p class="mu ctr">' + t("Legs gesamt eintragen (freiwillig), dann zählt bei Gleichstand die Leg-Differenz.") + "</p>" : "") : "") +
-      '<details class="st"' + (res.a1 != null || res.o1 ? " open" : "") + '><summary class="mu">' + t("Statistik") + " (Ø, 180er, High Finish, " + t("Bestes Leg (Darts)") + ")</summary>" +
-      [["a", t("Ø Average")], ["o", t("180er")], ["h", t("High Finish")], ["b", t("Bestes Leg (Darts)")]].map(function (x) {
+      '<div class="a">' + f("a1", "–") + "<span>" + t("Ø Average") + "</span>" + f("a2", "–") + "</div>" +
+      '<details class="st"' + (res.o1 || res.o2 || res.h1 || res.h2 || res.b1 || res.b2 ? " open" : "") + '><summary class="mu">' + t("Mehr Statistik") + " (180er, High Finish, " + t("Bestes Leg (Darts)") + ")</summary>" +
+      [["o", t("180er")], ["h", t("High Finish") + " (" + t("ab 100") + ")"], ["b", t("Bestes Leg (Darts)")]].map(function (x) {
         return '<div class="a">' + f(x[0] + "1", "–") + "<span>" + x[1] + "</span>" + f(x[0] + "2", "–") + "</div>"; }).join("") +
       '<p class="mu">' + t("Statistik pro Spiel ist freiwillig. Ø, 180er, High Finish und bestes Leg fliessen in die Auswertung ein.") + "</p></details>" +
       (UI.err[id] ? '<p class="wa">' + esc(UI.err[id]) + "</p>" : "") +
