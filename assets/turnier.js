@@ -112,7 +112,7 @@ var EN = {
   "Noch niemand ausgeschieden – Wetten starten, sobald der Erste raus ist.": "Nobody is out yet – betting starts once the first player is eliminated.",
   "Gerade ist kein Spiel offen, auf das gewettet werden kann.": "No match open for betting right now.",
   "Quoten aus Average und Leg-Differenz im Turnier. Ohne Daten gilt 50:50.": "Odds from average and leg difference in this tournament. Without data it is 50:50.",
-  "Wette löschen": "Delete bet", "Mehr Statistik": "More stats", "ab 100": "100+", "Wetten auf dieses Spiel": "Bets on this match", "Statt Bier geht alles, was im Glas ist.": "Anything in your glass counts, not just beer.",
+  "Wette löschen": "Delete bet", "wartet, bis beide frei sind": "waiting until both are free", "Liga: Jeder spielt an jedem Board gleich oft.": "League: everyone plays equally often on each board.", "Mehr Statistik": "More stats", "ab 100": "100+", "Wetten auf dieses Spiel": "Bets on this match", "Statt Bier geht alles, was im Glas ist.": "Anything in your glass counts, not just beer.",
   "Play-offs für die Top": "Play-offs for the top", "Spiel um die Rote Laterne": "Wooden spoon match",
   "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach steigen die Besten nach Ligaplatz in die Play-offs ein: 3. gegen 4., der Sieger gegen den 2., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then the best enter the play-offs by league position: 3rd vs 4th, the winner vs 2nd, the winner in the final vs the league winner.",
   "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach spielt der 2. gegen den 3., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then 2nd plays 3rd, the winner meets the league winner in the final.",
@@ -698,8 +698,57 @@ function queue() {
   return B().list.filter(function (m) { var r = resolve(m.id); return r.playable && onBoard(m.id) < 0; })
     .sort(function (a, b) { return (df[a.id] || 0) - (df[b.id] || 0); }).map(function (m) { return m.id; });
 }
+// Liga auf mehreren Boards: feste Runden, jeder Spieler gleich oft an jedem Board
+function boardPlan(ids) {
+  if (S.nb < 2) return null;
+  var ps = ids.slice(); if (ps.length % 2) ps.push(null);
+  var n = ps.length, rounds = [];
+  for (var r = 0; r < n - 1; r++) {
+    var pr = [];
+    for (var i = 0; i < n / 2; i++) { var a = ps[i], b = ps[n - 1 - i]; if (a != null && b != null) pr.push([Math.min(a, b), Math.max(a, b)]); }
+    rounds.push(pr); ps = [ps[0], ps[n - 1]].concat(ps.slice(1, n - 1));
+  }
+  if (S.rr2) rounds = rounds.concat(rounds.map(function (pr) { return pr.map(function (x) { return [x[0], x[1], 1]; }); }));
+  var k = rounds[0].length; if (k > S.nb || k < 2) return null;
+  var games = {}, cnt = {}; ids.forEach(function (id) { games[id] = 0; cnt[id] = []; for (var b = 0; b < k; b++) cnt[id][b] = 0; });
+  rounds.forEach(function (pr) { pr.forEach(function (x) { games[x[0]]++; games[x[1]]++; }); });
+  function cap(id) { return Math.ceil(games[id] / k); }
+  function perms(a) { if (a.length < 2) return [a]; var o = []; a.forEach(function (x, i) { perms(a.slice(0, i).concat(a.slice(i + 1))).forEach(function (r) { o.push([x].concat(r)); }); }); return o; }
+  var out = [], steps = 0;
+  function go(r) {
+    if (r === rounds.length) return true;
+    if (++steps > 200000) return false;
+    var pr = rounds[r], all = perms(pr.map(function (_, i) { return i; }));
+    for (var q = 0; q < all.length; q++) {
+      var ok = true;
+      for (var b = 0; b < pr.length && ok; b++) { var x = pr[all[q][b]]; if (cnt[x[0]][b] + 1 > cap(x[0]) || cnt[x[1]][b] + 1 > cap(x[1])) ok = false; }
+      if (!ok) continue;
+      for (b = 0; b < pr.length; b++) { x = pr[all[q][b]]; cnt[x[0]][b]++; cnt[x[1]][b]++; out.push({ id: "g0_" + x[0] + "_" + x[1] + (x[2] ? "_r" : ""), b: b, r: r }); }
+      if (go(r + 1)) return true;
+      for (b = 0; b < pr.length; b++) { x = pr[all[q][b]]; cnt[x[0]][b]--; cnt[x[1]][b]--; out.pop(); }
+    }
+    return false;
+  }
+  return go(0) ? out : null;
+}
+function activePlan() { var pl = S.draw && S.draw.plan; return pl && !pl.some(function (e) { return e.b >= S.nb; }) ? pl : null; }
+function planned(bi) {
+  var plan = activePlan(); if (!plan) return null;
+  for (var j = 0; j < plan.length; j++) { var e = plan[j]; if (e.b === bi && resolve(e.id).playable && onBoard(e.id) < 0) return e.id; }
+  return null;
+}
 function nextFor(bi) {
+  var plan = activePlan();
+  if (plan) {
+    for (var j = 0; j < plan.length; j++) {
+      var e = plan[j]; if (e.b !== bi) continue;
+      var rr = resolve(e.id); if (!rr.playable || onBoard(e.id) >= 0) continue;
+      var bz = busy(bi), pp = players(e.id);
+      return bz[pp[0]] || bz[pp[1]] ? null : e.id;     // Board wartet auf seine eingeplante Partie
+    }
+  }
   var bs = busy(bi), q = queue();
+  if (plan) q = q.filter(function (id) { return B().byId[id].st !== "g"; });
   for (var i = 0; i < q.length; i++) { var p = players(q[i]); if (!bs[p[0]] && !bs[p[1]]) return q[i]; }
   return null;
 }
@@ -752,7 +801,7 @@ function startDraw() {
   shuffle(ps);
   var d = { ids: ps.slice() };
   if (S.fmt === "groups") { d.groups = []; for (var g = 0; g < S.ng; g++) d.groups.push([]); ps.forEach(function (id, i) { d.groups[i % S.ng].push(id); }); }
-  else if (isLeague()) d.groups = [ps.slice()];
+  else if (isLeague()) { d.groups = [ps.slice()]; d.plan = boardPlan(ps); }
   else if (S.fmt === "swiss") {
     S.sr = Math.min(S.sr, ps.length - 1);
     if (S.sko > ps.length) S.sko = ps.length >= 8 ? 8 : ps.length >= 4 ? 4 : 2;
@@ -1084,6 +1133,7 @@ function boardCard(bi, tv) {
     var nx = nextFor(bi);
     if (tv) return '<div class="card tvb"><div class="mu">' + t("Board").toUpperCase() + " " + (bi + 1) + '</div><div class="big ac">' + t("frei") + "</div></div>";
     return '<div class="card"><h2>' + t("Board") + " " + (bi + 1) + ' <span class="ac">· ' + t("frei") + "</span></h2>" +
+      (!nx && planned(bi) ? '<p class="mu">' + t("Als Nächstes") + ": <b>" + esc(nm(players(planned(bi))[0])) + "</b> " + t("gegen") + " <b>" + esc(nm(players(planned(bi))[1])) + "</b> · " + t("wartet, bis beide frei sind") + "</p>" : "") +
       (nx ? '<p>' + t("Als Nächstes") + ": <b>" + esc(nm(players(nx)[0])) + "</b> " + t("gegen") + " <b>" + esc(nm(players(nx)[1])) + '</b> <span class="mu">' + esc(B().byId[nx].label) + '</span></p><button class="b p" data-do="call" data-b="' + bi + '">📣 ' + t("Nächstes Spiel ansagen") + "</button>" : '<p class="mu">' + t("Keine Partie verfügbar.") + "</p>") + "</div>";
   }
   var m = B().byId[id], p = players(id);
