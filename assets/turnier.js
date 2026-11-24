@@ -103,7 +103,20 @@ var EN = {
   "Kürzel": "Short", "Unentschieden": "Draw",
   "Beispielturnier laden": "Load example tournament",
   "Lädt ein Beispiel mit 12 Spielern, fertiger Gruppenphase und laufender K.O.-Runde. Der aktuelle Stand wird ersetzt.": "Loads an example with 12 players, a finished group stage and a running knockout stage. Replaces the current state.",
-  "Diese Option gibt es nur in der Gruppenphase.": "This option is only available in the group stage."
+  "Diese Option gibt es nur in der Gruppenphase.": "This option is only available in the group stage.",
+  "Liga + Stufenleiter": "League + stepladder", "Play-offs": "Play-offs", "Spiel 1": "Match 1", "Spiel 2": "Match 2",
+  "Play-offs für die Top": "Play-offs for the top", "Spiel um die Rote Laterne": "Wooden spoon match",
+  "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach steigen die Besten nach Ligaplatz in die Play-offs ein: 3. gegen 4., der Sieger gegen den 2., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then the best enter the play-offs by league position: 3rd vs 4th, the winner vs 2nd, the winner in the final vs the league winner.",
+  "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach spielt der 2. gegen den 3., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then 2nd plays 3rd, the winner meets the league winner in the final.",
+  "Der Letzte der Liga spielt gegen den Verlierer von Spiel 1.": "The last in the league plays the loser of match 1.",
+  "Liga noch nicht fertig – die Play-off-Paarungen stehen danach fest.": "League not finished yet – the play-off pairings follow from the table.",
+  "Liga + Stufenleiter braucht mindestens {0} Spieler.": "League + stepladder needs at least {0} players.",
+  "Platz": "Place", "Ligasieger": "League winner",
+  "Legs": "Legs", "Sets": "Sets", "Sätze": "Sets", "je Best of {0} Legs": "each best of {0} legs",
+  "Der Sieger braucht genau {0} Sätze, der Verlierer weniger.": "The winner needs exactly {0} sets, the loser fewer.",
+  "Legs gesamt": "Total legs", "Ergebnis in Sätzen eintragen.": "Enter the result in sets.",
+  "Rang: Punkte, Satz-Differenz, Leg-Differenz, Ø-Average.": "Rank: points, set difference, leg difference, average.",
+  "Legs gesamt eintragen (freiwillig), dann zählt bei Gleichstand die Leg-Differenz.": "Enter total legs (optional); the leg difference then breaks ties."
 };
 function lang() { return document.documentElement.lang === "en" ? "en" : "de"; }
 function t(s) {
@@ -116,7 +129,7 @@ function t(s) {
 function fresh() {
   return {
     v: 2, name: "", players: [], nid: 1,
-    fmt: "groups", ng: 2, adv: 2, rr2: false, third: true,
+    fmt: "groups", ng: 2, adv: 2, rr2: false, third: true, ltop: 4, lantern: true,
     mg: { bo: 3, x: 501, fix2: false }, mk: { bo: 3, x: 501 }, mf: { bo: 5, x: 501 },
     sr: 5, sko: 0,
     nb: 2, writer: false, auto: true, fee: 0, stake: false, cur: "CHF", extra: 0, house: 0, split: [50, 30, 20],
@@ -143,11 +156,16 @@ function fmtTime(ts) { var s = Math.max(0, Math.floor((Date.now() - ts) / 1000))
 function mode(k) { return k === "g" ? S.mg : k === "f" ? S.mf : S.mk; }
 function fix2(k) { return k === "g" && S.mg.fix2; }
 function need(k) { return fix2(k) ? 2 : (mode(k).bo + 1) / 2; }
+function isSets(k) { return !fix2(k) && !!mode(k).sets; }
+function unit(k) { return isSets(k) ? t("Sätze") : t("Legs"); }
 function modeTxt(k) {
   var m = mode(k);
   if (fix2(k)) return (lang() === "en" ? "2 legs fixed · " : "2 Legs fix · ") + m.x;
+  if (isSets(k)) return "Best of " + m.bo + " " + t("Sets") + " (" + t("je Best of {0} Legs", m.sets) + ") · " + m.x;
   return "Best of " + m.bo + " · " + m.x;
 }
+function isLeague() { return S.fmt === "league" || S.fmt === "ladder"; }
+function hasGroups() { return S.fmt === "groups" || S.fmt === "league" || S.fmt === "ladder"; }
 function finished(r, k) {
   if (!r || r.la == null || r.lb == null) return false;
   if (fix2(k)) return r.la + r.lb === 2;
@@ -306,10 +324,10 @@ function build() {
   function add(m) { M.push(m); byId[m.id] = m; }
   if (!S.started || !S.draw) return { list: M, byId: byId, k: 0 };
   var order = 0;
-  if (S.fmt === "groups" || S.fmt === "league") {
+  if (hasGroups()) {
     groupMatches().forEach(function (gm) {
       add({ id: gm.id, st: "g", g: gm.g, p: gm.p, no: gm.no, back: gm.back,
-            label: S.fmt === "league" ? t("Spielnr.") + " " + gm.no : t("Gruppe") + " " + LETTERS[gm.g] + (gm.back ? " · " + t("Rückspiel") : ""), order: order++ });
+            label: isLeague() ? t("Spielnr.") + " " + gm.no : t("Gruppe") + " " + LETTERS[gm.g] + (gm.back ? " · " + t("Rückspiel") : ""), order: order++ });
     });
   }
   if (S.fmt === "swiss") {
@@ -330,6 +348,19 @@ function build() {
       }
     }
     if (S.third && k >= 2) add({ id: "p3", st: "k", label: t("Spiel um Platz 3"), src: [{ l: "k" + (k - 1) + "_0" }, { l: "k" + (k - 1) + "_1" }], order: 1000 + k * 10 + 1 });
+  }
+  if (S.fmt === "ladder") {
+    var seed = function (n) { return { seed: n }; };
+    if (S.ltop >= 4) {
+      add({ id: "lad1", st: "k", label: t("Spiel 1"), src: [seed(3), seed(4)], order: 1010 });
+      add({ id: "lad2", st: "k", label: t("Spiel 2"), src: [seed(2), { w: "lad1" }], order: 1020 });
+      add({ id: "ladf", st: "f", label: t("Finale"), src: [seed(1), { w: "lad2" }], order: 1030 });
+      if (S.lantern && S.draw.ids.length >= 5) add({ id: "ladl", st: "k", label: t("Spiel um die Rote Laterne"), src: [seed(S.draw.ids.length), { l: "lad1" }], order: 1021 });
+    } else {
+      add({ id: "lad2", st: "k", label: t("Spiel 1"), src: [seed(2), seed(3)], order: 1020 });
+      add({ id: "ladf", st: "f", label: t("Finale"), src: [seed(1), { w: "lad2" }], order: 1030 });
+      if (S.lantern && S.draw.ids.length >= 4) add({ id: "ladl", st: "k", label: t("Spiel um die Rote Laterne"), src: [seed(S.draw.ids.length), { l: "lad2" }], order: 1021 });
+    }
   }
   if (S.fmt === "dko") {
     var r1d = koFirstRound(), Nd = r1d.length * 2; k = Math.log2(Nd);
@@ -366,12 +397,18 @@ function B() { if (!CACHE) { CACHE = build(); MEMO = {}; } return CACHE; }
 function dirty() { CACHE = null; MEMO = {}; }
 
 function groupsDone() {
-  if (S.fmt !== "groups") return true;
+  if (S.fmt !== "groups" && S.fmt !== "ladder") return true;
   return B().list.every(function (m) { return m.st !== "g" || finished(S.res[m.id], "g"); });
 }
 
 // Slot auflösen: {ready, p, ph}
 function slot(src) {
+  if (src.seed) {
+    var phs = src.seed + ". " + t("Platz");
+    if (!stageDone()) return { ready: false, p: null, ph: phs };
+    var row = stand(0)[src.seed - 1];
+    return { ready: true, p: row ? row.id : null, ph: phs };
+  }
   if (src.first) {
     var f = src.first;
     if (f.bye) return { ready: true, p: null, ph: t("Freilos") };
@@ -409,7 +446,7 @@ function players(id) { var r = resolve(id); return [r.a && r.a.p, r.b && r.b.p];
 /* ---------- Tabellen ---------- */
 function stand(g) {
   var ids = S.draw.groups[g], T = {};
-  ids.forEach(function (id) { T[id] = { id: id, sp: 0, w: 0, d: 0, l: 0, lf: 0, la: 0, av: [], pts: 0 }; });
+  ids.forEach(function (id) { T[id] = { id: id, sp: 0, w: 0, d: 0, l: 0, lf: 0, la: 0, gf: 0, ga: 0, av: [], pts: 0 }; });
   groupMatches().forEach(function (m) {
     if (m.g !== g) return;
     var r = S.res[m.id], a = T[m.p[0]], b = T[m.p[1]];
@@ -418,10 +455,11 @@ function stand(g) {
     if (r.a2 != null) b.av.push(r.a2);
     if (!finished(r, "g")) return;
     a.sp++; b.sp++; a.lf += r.la; a.la += r.lb; b.lf += r.lb; b.la += r.la;
+    if (r.g1 != null && r.g2 != null) { a.gf += r.g1; a.ga += r.g2; b.gf += r.g2; b.ga += r.g1; }
     if (r.la > r.lb) { a.w++; a.pts += 2; b.l++; } else if (r.lb > r.la) { b.w++; b.pts += 2; a.l++; } else { a.d++; b.d++; a.pts++; b.pts++; }
   });
-  return Object.keys(T).map(function (k) { var x = T[k]; x.diff = x.lf - x.la; x.avg = x.av.length ? x.av.reduce(function (s, v) { return s + v; }, 0) / x.av.length : 0; return x; })
-    .sort(function (a, b) { return b.pts - a.pts || b.diff - a.diff || b.lf - a.lf || b.avg - a.avg; });
+  return Object.keys(T).map(function (k) { var x = T[k]; x.diff = x.lf - x.la; x.gd = x.gf - x.ga; x.avg = x.av.length ? x.av.reduce(function (s, v) { return s + v; }, 0) / x.av.length : 0; return x; })
+    .sort(function (a, b) { return b.pts - a.pts || b.diff - a.diff || b.gd - a.gd || b.lf - a.lf || b.avg - a.avg; });
 }
 
 /* ---------- Statistik ---------- */
@@ -452,6 +490,18 @@ function places() {
   if (S.fmt === "swiss" && S.sko < 2) {
     if (!swissDone()) return null;
     swissStand().slice(0, 4).forEach(function (x, i) { out.push({ from: i + 1, to: i + 1, ids: [x.id] }); });
+    return out;
+  }
+  if (S.fmt === "ladder") {
+    var lf = resolve("ladf"); if (!lf.done) return null;
+    out.push({ from: 1, to: 1, ids: [lf.win] });
+    if (lf.lose != null) out.push({ from: 2, to: 2, ids: [lf.lose] });
+    var l2 = resolve("lad2"); if (l2.done && l2.lose != null) out.push({ from: 3, to: 3, ids: [l2.lose] });
+    if (b.byId.lad1) {
+      var ll = b.byId.ladl ? resolve("ladl") : null;
+      if (ll && ll.done && ll.win != null) out.push({ from: 4, to: 4, ids: [ll.win] });
+      else { var l1 = resolve("lad1"); if (l1.done && l1.lose != null && !b.byId.ladl) out.push({ from: 4, to: 4, ids: [l1.lose] }); }
+    }
     return out;
   }
   if (S.fmt === "league") {
@@ -567,11 +617,12 @@ function startDraw() {
   else if (S.fmt === "swiss" && ps.length < 4) err = t("Schweizer System braucht mindestens 4 Spieler.");
   else if (S.fmt === "groups" && ps.length < 4) err = t("Gruppen + K.O. braucht mindestens 4 Spieler.");
   else if (S.fmt === "groups" && ps.length < S.ng * 2) err = t("Zu viele Gruppen für so wenige Spieler.");
+  else if (S.fmt === "ladder" && ps.length < S.ltop) err = t("Liga + Stufenleiter braucht mindestens {0} Spieler.", S.ltop);
   UI.err.start = err; if (err) return;
   shuffle(ps);
   var d = { ids: ps.slice() };
   if (S.fmt === "groups") { d.groups = []; for (var g = 0; g < S.ng; g++) d.groups.push([]); ps.forEach(function (id, i) { d.groups[i % S.ng].push(id); }); }
-  else if (S.fmt === "league") d.groups = [ps.slice()];
+  else if (isLeague()) d.groups = [ps.slice()];
   else if (S.fmt === "swiss") {
     S.sr = Math.min(S.sr, ps.length - 1);
     if (S.sko > ps.length) S.sko = ps.length >= 8 ? 8 : ps.length >= 4 ? 4 : 2;
@@ -589,11 +640,11 @@ function hasResults() { return Object.keys(S.res).some(function (k) { var r = S.
 function saveResult(id, form) {
   var m = B().byId[id]; if (!m) return false;
   var g = function (n) { var el = form.querySelector('[name="' + n + '"]'); return el ? num(el.value) : null; };
-  var r = { la: g("la"), lb: g("lb"), a1: g("a1"), a2: g("a2"), o1: g("o1"), o2: g("o2"), h1: g("h1"), h2: g("h2"), b1: g("b1"), b2: g("b2") };
-  ["la", "lb", "o1", "o2", "h1", "h2", "b1", "b2"].forEach(function (k) { if (r[k] != null) r[k] = Math.max(0, Math.round(r[k])); });
+  var r = { la: g("la"), lb: g("lb"), a1: g("a1"), a2: g("a2"), o1: g("o1"), o2: g("o2"), h1: g("h1"), h2: g("h2"), b1: g("b1"), b2: g("b2"), g1: g("g1"), g2: g("g2") };
+  ["la", "lb", "o1", "o2", "h1", "h2", "b1", "b2", "g1", "g2"].forEach(function (k) { if (r[k] != null) r[k] = Math.max(0, Math.round(r[k])); });
   if (r.h1 != null && r.h1 > 170) r.h1 = 170; if (r.h2 != null && r.h2 > 170) r.h2 = 170;
   if (!finished(r, m.st)) {
-    UI.err[id] = fix2(m.st) ? t("Bei 2 Legs fix muss die Summe 2 sein (2:0, 1:1, 0:2).") : t("Der Sieger braucht genau {0} Legs, der Verlierer weniger.", need(m.st));
+    UI.err[id] = fix2(m.st) ? t("Bei 2 Legs fix muss die Summe 2 sein (2:0, 1:1, 0:2).") : isSets(m.st) ? t("Der Sieger braucht genau {0} Sätze, der Verlierer weniger.", need(m.st)) : t("Der Sieger braucht genau {0} Legs, der Verlierer weniger.", need(m.st));
     return false;
   }
   delete UI.err[id];
@@ -679,16 +730,18 @@ function viewSetup() {
   if (!locked) {
     h += '<div class="card"><h2>' + t("Format") + "</h2>" +
       '<div class="row"><label>' + t("Turniername") + ' <input data-set="name" value="' + esc(S.name) + '" placeholder="' + t("z. B. Kneipenturnier November") + '" maxlength="60"></label></div>' +
-      '<div class="seg">' + [["groups", t("Gruppen + K.O.")], ["ko", t("K.O.")], ["dko", t("Doppel-K.O.")], ["league", t("Liga (jeder gegen jeden)")], ["swiss", t("Schweizer System")]].map(function (o) {
+      '<div class="seg">' + [["groups", t("Gruppen + K.O.")], ["ko", t("K.O.")], ["dko", t("Doppel-K.O.")], ["league", t("Liga (jeder gegen jeden)")], ["ladder", t("Liga + Stufenleiter")], ["swiss", t("Schweizer System")]].map(function (o) {
         return '<button class="b' + (S.fmt === o[0] ? " p" : "") + '" data-do="fmt" data-v="' + o[0] + '">' + o[1] + "</button>"; }).join("") + "</div>" +
+      (S.fmt === "ladder" ? '<div class="row"><label>' + t("Play-offs für die Top") + " " + sel("ltop", [[3, 3], [4, 4]], S.ltop) + "</label></div>" +
+        '<label class="chk"><input type="checkbox" data-sb="lantern"' + (S.lantern ? " checked" : "") + "> " + t("Spiel um die Rote Laterne") + " <span class=\"mu\">(" + t("Der Letzte der Liga spielt gegen den Verlierer von Spiel 1.") + ")</span></label>" : "") +
       (S.fmt === "groups" ? '<div class="row"><label>' + t("Anzahl Gruppen") + " " + sel("ng", [1, 2, 3, 4, 5, 6, 7, 8].map(function (x) { return [x, x]; }), S.ng) + "</label><label>" + t("Weiter pro Gruppe") + " " + sel("adv", [1, 2, 3, 4].map(function (x) { return [x, x]; }), S.adv) + "</label></div>" : "") +
       (S.fmt === "swiss" ? '<div class="row"><label>' + t("Runden") + " " + sel("sr", [3, 4, 5, 6, 7, 8, 9].map(function (x) { return [x, x]; }), S.sr) + "</label><label>" + t("Danach K.O. für die Besten") + " " + sel("sko", [[0, t("kein K.O.")], [2, t("Top") + " 2"], [4, t("Top") + " 4"], [8, t("Top") + " 8"], [16, t("Top") + " 16"]], S.sko) + "</label></div>" : "") +
-      (S.fmt === "groups" || S.fmt === "league" ? '<label class="chk"><input type="checkbox" data-sb="rr2"' + (S.rr2 ? " checked" : "") + "> " + t("Hin- und Rückspiel") + "</label>" : "") +
+      (hasGroups() ? '<label class="chk"><input type="checkbox" data-sb="rr2"' + (S.rr2 ? " checked" : "") + "> " + t("Hin- und Rückspiel") + "</label>" : "") +
       (S.fmt === "groups" || S.fmt === "ko" ? '<label class="chk"><input type="checkbox" data-sb="third"' + (S.third ? " checked" : "") + "> " + t("Spiel um Platz 3") + "</label>" : "") +
       '<p class="mu">' + rulesFmt() + "</p></div>";
     h += '<div class="card"><h2>' + t("Spielmodus") + "</h2>" +
-      (S.fmt === "groups" || S.fmt === "league" || S.fmt === "swiss" ? modeRow("g", t("Gruppen / Liga / Runden")) : "") +
-      (S.fmt !== "league" && !(S.fmt === "swiss" && S.sko < 2) ? modeRow("k", t("K.O.-Runden")) + modeRow("f", t("Finale")) : "") + "</div>";
+      (hasGroups() || S.fmt === "swiss" ? modeRow("g", t("Gruppen / Liga / Runden")) : "") +
+      (S.fmt !== "league" && !(S.fmt === "swiss" && S.sko < 2) ? modeRow("k", S.fmt === "ladder" ? t("Play-offs") : t("K.O.-Runden")) + modeRow("f", t("Finale")) : "") + "</div>";
   }
   h += '<div class="card"><h2>' + t("Boards und Ablauf") + "</h2>" +
     '<div class="row"><label>' + t("Anzahl Boards") + " " + sel("nb", [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16].map(function (x) { return [x, x]; }), S.nb) + "</label></div>" +
@@ -728,18 +781,20 @@ function prizeResult() {
       return '<div class="pl"><span class="tn">' + (medal[r.place - 1] || r.place + ".") + '</span><span class="nm">' + (r.who || '<span class="mu">' + t("noch offen") + "</span>") + '</span><span class="mu">' + r.pct + ' %</span><b class="amt">' + money(r.shared != null ? r.shared : r.amount) + (r.shared != null ? ' <span class="mu">/ ' + (lang() === "en" ? "each" : "pro Kopf") + "</span>" : "") + "</b></div>";
     }).join("") + "</div>";
 }
-function fmtName(f) { return f === "groups" ? t("Gruppen + K.O.") : f === "ko" ? t("K.O.") : f === "dko" ? t("Doppel-K.O.") : f === "swiss" ? t("Schweizer System") : t("Liga (jeder gegen jeden)"); }
+function fmtName(f) { return f === "groups" ? t("Gruppen + K.O.") : f === "ko" ? t("K.O.") : f === "dko" ? t("Doppel-K.O.") : f === "swiss" ? t("Schweizer System") : f === "ladder" ? t("Liga + Stufenleiter") : t("Liga (jeder gegen jeden)"); }
 function rulesFmt() {
   return S.fmt === "groups" ? t("Die Besten jeder Gruppe kommen in die K.O.-Runde, über Kreuz gesetzt (Gruppensieger gegen Zweite anderer Gruppen).")
     : S.fmt === "ko" ? t("K.O.: Wer verliert, scheidet aus. Freilose gehen an die ersten Plätze der Auslosung.")
     : S.fmt === "dko" ? t("Doppel-K.O.: Wer zweimal verliert, scheidet aus. Wer im Winner-Bracket verliert, spielt im Loser-Bracket weiter. Im Grand Final trifft der Sieger des Winner-Brackets auf den Sieger des Loser-Brackets (ein Spiel).")
+    : S.fmt === "ladder" ? t(S.ltop >= 4 ? "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach steigen die Besten nach Ligaplatz in die Play-offs ein: 3. gegen 4., der Sieger gegen den 2., der Sieger im Finale gegen den Ligasieger." : "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach spielt der 2. gegen den 3., der Sieger im Finale gegen den Ligasieger.")
     : S.fmt === "swiss" ? t("Schweizer System: In jeder Runde spielen Spieler mit gleich vielen Punkten gegeneinander, niemand zweimal gegen denselben. Runde 1 wird ausgelost, jede weitere Runde entsteht aus der aktuellen Tabelle.")
     : t("Liga: Jeder spielt gegen jeden, die Tabelle entscheidet.");
 }
 function modeRow(k, label) {
   var m = mode(k), opts = (k === "g" ? [[1], [3], [5], [7], ["fix2"]] : [[1], [3], [5], [7], [9], [11]]).map(function (o) { return [o[0], o[0] === "fix2" ? t("2 Legs fix (Unentschieden möglich)") : "Best of " + o[0]]; });
+  var us = fix2(k) ? "" : sel("u_" + k, [[0, t("Legs")], [3, t("Sets") + " (" + t("je Best of {0} Legs", 3) + ")"], [5, t("Sets") + " (" + t("je Best of {0} Legs", 5) + ")"]], m.sets || 0);
   return '<div class="pl"><span class="nm"><b>' + label + '</b><br><span class="mu">' + modeTxt(k) + "</span></span>" +
-    sel("bo_" + k, opts, fix2(k) ? "fix2" : m.bo) + sel("x_" + k, [[301, 301], [501, 501], [701, 701]], m.x) + "</div>";
+    sel("bo_" + k, opts, fix2(k) ? "fix2" : m.bo) + us + sel("x_" + k, [[301, 301], [501, 501], [701, 701]], m.x) + "</div>";
 }
 
 function backupCard() {
@@ -766,6 +821,9 @@ function matchBox(id, opts) {
     var f = function (n, ph, cls) { return '<input class="n ' + (cls || "") + '" name="' + n + '" inputmode="decimal" placeholder="' + ph + '" value="' + (res[n] != null ? res[n] : "") + '">'; };
     return '<form class="m edit" data-id="' + id + '">' + head +
       '<div class="t"><div class="' + (wA ? "w" : "") + '">' + nA + "</div><div>" + f("la", "0") + " : " + f("lb", "0") + '</div><div class="' + (wB ? "w" : "") + '">' + nB + "</div></div>" +
+      (isSets(m.st) ? '<p class="mu ctr">' + t("Ergebnis in Sätzen eintragen.") + "</p>" +
+        '<div class="a">' + f("g1", "–") + "<span>" + t("Legs gesamt") + "</span>" + f("g2", "–") + "</div>" +
+        (m.st === "g" ? '<p class="mu ctr">' + t("Legs gesamt eintragen (freiwillig), dann zählt bei Gleichstand die Leg-Differenz.") + "</p>" : "") : "") +
       '<details class="st"' + (res.a1 != null || res.o1 ? " open" : "") + '><summary class="mu">' + t("Statistik") + " (Ø, 180er, High Finish, " + t("Bestes Leg (Darts)") + ")</summary>" +
       [["a", t("Ø Average")], ["o", t("180er")], ["h", t("High Finish")], ["b", t("Bestes Leg (Darts)")]].map(function (x) {
         return '<div class="a">' + f(x[0] + "1", "–") + "<span>" + x[1] + "</span>" + f(x[0] + "2", "–") + "</div>"; }).join("") +
@@ -782,10 +840,10 @@ function matchBox(id, opts) {
 }
 
 function groupTable(g, tv) {
-  var q = S.fmt === "groups" ? S.adv : 0, rows = stand(g), dr = fix2("g");
-  return '<div class="sc"><table><tr><th>#</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th>" + (tv ? "" : "<th>" + t("S") + "</th>" + (dr ? "<th>" + t("U") + "</th>" : "") + "<th>" + t("N") + "</th>") + "<th>" + t("Legs") + "</th>" + (tv ? "" : "<th>" + t("Diff") + "</th>") + "<th>" + t("Ø") + "</th><th>" + t("Pkt") + "</th></tr>" +
+  var q = S.fmt === "groups" ? S.adv : S.fmt === "ladder" ? S.ltop : 0, rows = stand(g), dr = fix2("g"), gl = isSets("g") && rows.some(function (x) { return x.gf || x.ga; });
+  return '<div class="sc"><table><tr><th>#</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th>" + (tv ? "" : "<th>" + t("S") + "</th>" + (dr ? "<th>" + t("U") + "</th>" : "") + "<th>" + t("N") + "</th>") + "<th>" + unit("g") + "</th>" + (gl ? "<th>" + t("Legs") + "</th>" : "") + (tv ? "" : "<th>" + t("Diff") + "</th>") + "<th>" + t("Ø") + "</th><th>" + t("Pkt") + "</th></tr>" +
     rows.map(function (x, i) {
-      return '<tr class="' + (i < q ? "q" : "") + '"><td>' + (i + 1) + '</td><td class="l">' + esc(nm(x.id)) + "</td><td>" + x.sp + "</td>" + (tv ? "" : "<td>" + x.w + "</td>" + (dr ? "<td>" + x.d + "</td>" : "") + "<td>" + x.l + "</td>") + "<td>" + x.lf + ":" + x.la + "</td>" + (tv ? "" : "<td>" + (x.diff > 0 ? "+" : "") + x.diff + "</td>") + "<td>" + (x.avg ? x.avg.toFixed(tv ? 1 : 2) : "–") + "</td><td><b>" + x.pts + "</b></td></tr>";
+      return '<tr class="' + (i < q ? "q" : "") + '"><td>' + (i + 1) + '</td><td class="l">' + esc(nm(x.id)) + "</td><td>" + x.sp + "</td>" + (tv ? "" : "<td>" + x.w + "</td>" + (dr ? "<td>" + x.d + "</td>" : "") + "<td>" + x.l + "</td>") + "<td>" + x.lf + ":" + x.la + "</td>" + (gl ? "<td>" + x.gf + ":" + x.ga + "</td>" : "") + (tv ? "" : "<td>" + (x.diff > 0 ? "+" : "") + x.diff + "</td>") + "<td>" + (x.avg ? x.avg.toFixed(tv ? 1 : 2) : "–") + "</td><td><b>" + x.pts + "</b></td></tr>";
     }).join("") + "</table></div>";
 }
 
@@ -815,16 +873,16 @@ function viewSchedule() {
   var gm = b.list.filter(function (m) { return m.st === "g" && !m.sw; });
   if (gm.length) {
     var done = gm.filter(function (m) { return resolve(m.id).done; }).length;
-    h += '<p class="mu"><b>' + modeTxt("g") + "</b> · " + done + "/" + gm.length + " " + t("gespielt") + ". " + t(fix2("g") ? "Punkte: Sieg 2, Unentschieden 1, Niederlage 0. Rang: Punkte, Leg-Differenz, gewonnene Legs, Ø-Average." : "Rang: Punkte, Leg-Differenz, gewonnene Legs, Ø-Average.") + (S.fmt === "groups" ? " " + t("Grün = qualifiziert für die K.O.-Runde.") : "") + "</p>";
+    h += '<p class="mu"><b>' + modeTxt("g") + "</b> · " + done + "/" + gm.length + " " + t("gespielt") + ". " + t(isSets("g") ? "Rang: Punkte, Satz-Differenz, Leg-Differenz, Ø-Average." : fix2("g") ? "Punkte: Sieg 2, Unentschieden 1, Niederlage 0. Rang: Punkte, Leg-Differenz, gewonnene Legs, Ø-Average." : "Rang: Punkte, Leg-Differenz, gewonnene Legs, Ø-Average.") + (S.fmt === "groups" ? " " + t("Grün = qualifiziert für die K.O.-Runde.") : "") + "</p>";
     h += '<div class="grid g2">' + S.draw.groups.map(function (_, g) {
-      return '<div class="card"><h2>' + (S.fmt === "league" ? (S.name ? esc(S.name) : "Liga") : t("Gruppe") + " " + LETTERS[g]) + "</h2>" + groupTable(g) +
+      return '<div class="card"><h2>' + (isLeague() ? (S.name ? esc(S.name) : "Liga") : t("Gruppe") + " " + LETTERS[g]) + "</h2>" + groupTable(g) +
         '<h3 class="sub">' + t("Spiele") + "</h3>" + gm.filter(function (m) { return m.g === g; }).map(function (m) { return matchBox(m.id); }).join("") + "</div>";
     }).join("") + "</div>";
   }
   var km = b.list.filter(function (m) { return m.st !== "g"; });
   if (km.length) {
-    if (!stageDone()) h += '<p class="wa">' + t(S.fmt === "swiss" ? "Schweizer-System-Runden noch nicht fertig – die K.O.-Paarungen stehen danach fest." : "Gruppenphase noch nicht fertig – die K.O.-Paarungen stehen danach fest.") + "</p>";
-    h += '<div class="card"><h2>' + t("K.O.-Runden") + ' <span class="mu">· ' + modeTxt("k") + " · " + t("Finale") + ": " + modeTxt("f") + "</span></h2>" +
+    if (!stageDone()) h += '<p class="wa">' + t(S.fmt === "swiss" ? "Schweizer-System-Runden noch nicht fertig – die K.O.-Paarungen stehen danach fest." : S.fmt === "ladder" ? "Liga noch nicht fertig – die Play-off-Paarungen stehen danach fest." : "Gruppenphase noch nicht fertig – die K.O.-Paarungen stehen danach fest.") + "</p>";
+    h += '<div class="card"><h2>' + t(S.fmt === "ladder" ? "Play-offs" : "K.O.-Runden") + ' <span class="mu">· ' + modeTxt("k") + " · " + t("Finale") + ": " + modeTxt("f") + "</span></h2>" +
       km.filter(function (m) { var r = resolve(m.id); return !(r.bye); }).map(function (m) { return matchBox(m.id); }).join("") + "</div>";
   }
   return h;
@@ -851,9 +909,15 @@ function viewBracket() {
   if (S.fmt === "league" || (S.fmt === "swiss" && S.sko < 2)) return viewSchedule();
   var b = B(), h = "";
   if (S.fmt === "swiss" && !swissDone()) h += '<p class="wa">' + t("Schweizer-System-Runden noch nicht fertig – die K.O.-Paarungen stehen danach fest.") + "</p>";
-  else if (!groupsDone()) h += '<p class="wa">' + t("Gruppenphase noch nicht fertig – die K.O.-Paarungen stehen danach fest.") + "</p>";
+  else if (!groupsDone()) h += '<p class="wa">' + t(S.fmt === "ladder" ? "Liga noch nicht fertig – die Play-off-Paarungen stehen danach fest." : "Gruppenphase noch nicht fertig – die K.O.-Paarungen stehen danach fest.") + "</p>";
   var champ = podium();
   if (champ && champ[0] != null) h += '<div class="card champ">🏆 ' + t("Turniersieger") + "<b>" + esc(nm(champ[0])) + "</b></div>";
+  if (S.fmt === "ladder") {
+    var lc = (b.byId.lad1 ? bracketCol(["lad1"], t("Spiel 1")) + bracketCol(["lad2"], t("Spiel 2")) : bracketCol(["lad2"], t("Spiel 1"))) + bracketCol(["ladf"], t("Finale"));
+    h += '<div class="card"><h2>' + t("Play-offs") + ' <span class="mu">· ' + modeTxt("k") + " · " + t("Finale") + ": " + modeTxt("f") + '</span></h2><div class="br">' + lc + "</div>" +
+      (b.byId.ladl ? '<div class="br p3">' + bracketCol(["ladl"], t("Spiel um die Rote Laterne")) + "</div>" : "") + "</div>";
+    return h;
+  }
   if (S.fmt === "dko") {
     var k = b.k, J = 2 * (k - 1), wb = "", lb = "";
     for (var r = 1; r <= k; r++) wb += bracketCol(b.list.filter(function (m) { return m.br === "w" && m.r === r; }).map(function (m) { return m.id; }), r === k ? t("Winner-Finale") : t("Runde") + " " + r);
@@ -931,7 +995,7 @@ function viewStats() {
   return (pod && pod[0] != null ? '<div class="card champ">🏆 ' + t("Turniersieger") + "<b>" + esc(nm(pod[0])) + "</b></div>" : "") +
     prizeResult() + '<div class="chips">' + chip("🎯 " + t("Bestes Ø-Average"), best("avg", false, function (v) { return v.toFixed(2); })) + chip("💯 " + t("Meiste 180er"), best("t180", false, function (v) { return v; })) +
     chip("🔥 " + t("Höchstes Finish"), best("hf", false, function (v) { return v; })) + chip("⚡ " + t("Kürzestes Leg"), best("bl", true, function (v) { return v + (lang() === "en" ? " darts" : " Darts"); })) + "</div>" +
-    '<div class="card"><h2>' + t("Statistik") + (pod ? "" : ' <span class="mu">(' + t("vorläufig") + ")</span>") + '</h2><div class="sc"><table><tr><th>' + t("Platz") + '</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th><th>" + t("S") + "</th><th>" + t("N") + "</th><th>" + t("Legs") + "</th><th>" + t("Ø") + "</th><th>" + t("Bester Ø") + "</th><th>180</th><th>HF</th><th>" + (lang() === "en" ? "Best leg" : "Bestes Leg") + "</th></tr>" +
+    '<div class="card"><h2>' + t("Statistik") + (pod ? "" : ' <span class="mu">(' + t("vorläufig") + ")</span>") + '</h2><div class="sc"><table><tr><th>' + t("Platz") + '</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th><th>" + t("S") + "</th><th>" + t("N") + "</th><th>" + unit("g") + "</th><th>" + t("Ø") + "</th><th>" + t("Bester Ø") + "</th><th>180</th><th>HF</th><th>" + (lang() === "en" ? "Best leg" : "Bestes Leg") + "</th></tr>" +
     T.map(function (s) { var pl = place[s.id]; return "<tr><td>" + (pl ? medal[pl - 1] : "–") + '</td><td class="l">' + esc(nm(s.id)) + "</td><td>" + s.sp + "</td><td>" + s.w + "</td><td>" + s.l + "</td><td>" + s.lf + ":" + s.la + "</td><td><b>" + (s.avg != null ? s.avg.toFixed(2) : "–") + "</b></td><td>" + (s.mx ? s.mx.toFixed(2) : "–") + "</td><td>" + (s.t180 || "–") + "</td><td>" + (s.hf || "–") + "</td><td>" + (s.bl || "–") + "</td></tr>"; }).join("") +
     "</table></div></div>";
 }
@@ -950,7 +1014,7 @@ function viewTv() {
     '<div class="card"><h2>⏱ ' + t("Wartezeiten") + "</h2>" + waitHtml(6) + "</div></div>";
   if (S.fmt === "swiss" && (!swissDone() || S.sko < 2)) h += '<div class="card"><h2>' + t("Tabelle") + " · " + t("Runde") + " " + swissRounds().length + "/" + S.sr + "</h2>" + swissTable(true, 12) + "</div>";
   else if (S.fmt === "swiss") h += viewBracket().replace(/<div class="card champ">[\s\S]*?<\/b><\/div>/, "");
-  else if (S.draw.groups && !(S.fmt === "groups" && groupsDone())) h += '<div class="grid g2">' + S.draw.groups.map(function (_, g) { return '<div class="card"><h2>' + (S.fmt === "league" ? "Liga" : t("Gruppe") + " " + LETTERS[g]) + "</h2>" + groupTable(g, true) + "</div>"; }).join("") + "</div>";
+  else if (S.draw.groups && !((S.fmt === "groups" || S.fmt === "ladder") && groupsDone())) h += '<div class="grid g2">' + S.draw.groups.map(function (_, g) { return '<div class="card"><h2>' + (isLeague() ? "Liga" : t("Gruppe") + " " + LETTERS[g]) + "</h2>" + groupTable(g, true) + "</div>"; }).join("") + "</div>";
   else if (S.fmt !== "league") h += viewBracket().replace(/<div class="card champ">[\s\S]*?<\/b><\/div>/, "");
   h += '<div class="tvbrand">' + (QR ? '<img src="' + QR + '" alt="QR" width="120" height="120">' : "") + '<div><div class="tvwm">LEAVE<b>26</b></div><div>' + t("Mit Leave26 geplant. Checkouts sammeln, 180er zählen, mit Freunden vergleichen.") + '</div><div class="mu">' + t("Gratis im Google Play Store – QR-Code scannen") + "</div></div></div>";
   return h;
@@ -980,9 +1044,10 @@ function setOpt(k, v) {
   if (k === "house") { S.house = Math.min(100, Math.max(0, num(v) || 0)); return; }
   if (k === "cur") { S.cur = String(v).trim().slice(0, 4); return; }
   if (k === "name") { S.name = String(v).slice(0, 60); return; }
-  if (k === "ng" || k === "adv" || k === "nb" || k === "sr" || k === "sko") { S[k] = +v; return; }
+  if (k === "ng" || k === "adv" || k === "nb" || k === "sr" || k === "sko" || k === "ltop") { S[k] = +v; return; }
   var mk = k.split("_");
   if (mk[0] === "bo") { var m = mk[1] === "g" ? S.mg : mk[1] === "f" ? S.mf : S.mk; if (v === "fix2") { m.fix2 = true; m.bo = 3; } else { m.fix2 = false; m.bo = +v; } return; }
+  if (mk[0] === "u") { (mk[1] === "g" ? S.mg : mk[1] === "f" ? S.mf : S.mk).sets = +v || 0; return; }
   if (mk[0] === "x") { (mk[1] === "g" ? S.mg : mk[1] === "f" ? S.mf : S.mk).x = +v; }
 }
 root.addEventListener("click", function (e) {
