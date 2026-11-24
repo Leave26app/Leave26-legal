@@ -528,7 +528,7 @@ function boWin(p, n) { var s = 0; for (var k = 0; k < n; k++) s += binom(n - 1 +
 function outcomes(id) {
   var m = B().byId[id], p = players(id), st = strength();
   var diff = (st[p[0]] || 50) - (st[p[1]] || 50);
-  var pl = 1 / (1 + Math.exp(-diff / 22));                         // Leg-Chance
+  var pl = Math.max(0.3, Math.min(0.7, 1 / (1 + Math.exp(-diff / 22))));  // auch der Stärkste gewinnt nie mehr als 7 von 10 Legs                         // Leg-Chance
   var md = mode(m.st), n = need(m.st), pu = md.sets ? boWin(pl, (md.sets + 1) / 2) : pl;
   var out = [];
   for (var k = 0; k < n; k++) {
