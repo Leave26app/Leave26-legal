@@ -512,8 +512,10 @@ function strength() {
   var base = all.length ? all.reduce(function (s, v) { return s + v; }, 0) / all.length : 50, out = {};
   Object.keys(T).forEach(function (k) {
     var x = T[k], av = x.av.length ? x.av.reduce(function (s, v) { return s + v; }, 0) / x.av.length : base;
-    av = (av * x.av.length + base) / (x.av.length + 1);           // wenige Werte: Richtung Durchschnitt ziehen
-    out[k] = av + (x.n ? 2 * x.ld / x.n * x.n / (x.n + 1) : 0);
+    // Ein Abend ist wenig Datenbasis: Averages und Leg-Differenz kräftig Richtung Feld ziehen,
+    // sonst werden die Quoten über Leg → Satz → Match unrealistisch extrem.
+    av = (av * x.av.length + base * 4) / (x.av.length + 4);
+    out[k] = av + (x.n ? 1.5 * x.ld / (x.n + 2) : 0);
   });
   return out;
 }
@@ -524,7 +526,7 @@ function boWin(p, n) { var s = 0; for (var k = 0; k < n; k++) s += binom(n - 1 +
 function outcomes(id) {
   var m = B().byId[id], p = players(id), st = strength();
   var diff = (st[p[0]] || 50) - (st[p[1]] || 50);
-  var pl = 1 / (1 + Math.exp(-diff / 11));                         // Leg-Chance
+  var pl = 1 / (1 + Math.exp(-diff / 22));                         // Leg-Chance
   var md = mode(m.st), n = need(m.st), pu = md.sets ? boWin(pl, (md.sets + 1) / 2) : pl;
   var out = [];
   for (var k = 0; k < n; k++) {
@@ -534,7 +536,7 @@ function outcomes(id) {
   var pa = out.reduce(function (s, o) { return s + (o.a > o.b ? o.pr : 0); }, 0);
   return { win: [pa, 1 - pa], exact: out.sort(function (x, y) { return y.a - y.b - (x.a - x.b); }) };
 }
-function quote(pr) { return Math.max(1.1, Math.min(30, Math.round(0.92 / Math.max(pr, 0.001) * 10) / 10)); }
+function quote(pr) { return Math.max(1.1, Math.min(30, Math.round(0.95 / Math.max(pr, 0.001) * 10) / 10)); }
 function fmtQ(q) { return lang() === "en" ? q.toFixed(1) : q.toFixed(1).replace(".", ","); }
 function eliminated() {
   var out = {}, b = B();
