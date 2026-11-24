@@ -1087,11 +1087,12 @@ function matchBox(id, opts) {
     '<div class="mf">' + (bi >= 0 ? '<span class="pill">🎯 ' + t("Board") + " " + (bi + 1) + "</span>" : "") + btn + "</div></div>";
 }
 
-function groupTable(g, tv) {
+function groupTable(g, tv, full) {
+  var ex = {}; if (full) stats().forEach(function (x) { ex[x.id] = x; });
   var q = S.fmt === "groups" ? S.adv : S.fmt === "ladder" ? S.ltop : 0, rows = stand(g), dr = fix2("g"), gl = isSets("g") && rows.some(function (x) { return x.gf || x.ga; });
-  return '<div class="sc"><table><tr><th>#</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th>" + (tv ? "" : "<th>" + t("S") + "</th>" + (dr ? "<th>" + t("U") + "</th>" : "") + "<th>" + t("N") + "</th>") + "<th>" + unit("g") + "</th>" + (gl ? "<th>" + t("Legs") + "</th>" : "") + (tv ? "" : "<th>" + t("Diff") + "</th>") + "<th>" + t("Ø") + "</th><th>" + t("Pkt") + "</th></tr>" +
+  return '<div class="sc"><table><tr><th>#</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th>" + (tv ? "" : "<th>" + t("S") + "</th>" + (dr ? "<th>" + t("U") + "</th>" : "") + "<th>" + t("N") + "</th>") + "<th>" + unit("g") + "</th>" + (gl ? "<th>" + t("Legs") + "</th>" : "") + (tv ? "" : "<th>" + t("Diff") + "</th>") + "<th>" + t("Ø") + "</th>" + (full ? "<th>180</th><th>Finish</th>" : "") + "<th>" + t("Pkt") + "</th></tr>" +
     rows.map(function (x, i) {
-      return '<tr class="' + (i < q ? "q" : "") + '"><td>' + (i + 1) + '</td><td class="l">' + esc(nm(x.id)) + "</td><td>" + x.sp + "</td>" + (tv ? "" : "<td>" + x.w + "</td>" + (dr ? "<td>" + x.d + "</td>" : "") + "<td>" + x.l + "</td>") + "<td>" + x.lf + ":" + x.la + "</td>" + (gl ? "<td>" + x.gf + ":" + x.ga + "</td>" : "") + (tv ? "" : "<td>" + (x.diff > 0 ? "+" : "") + x.diff + "</td>") + "<td>" + (x.avg ? x.avg.toFixed(tv ? 1 : 2) : "–") + "</td><td><b>" + x.pts + "</b></td></tr>";
+      return '<tr class="' + (i < q ? "q" : "") + '"><td>' + (i + 1) + '</td><td class="l">' + esc(nm(x.id)) + "</td><td>" + x.sp + "</td>" + (tv ? "" : "<td>" + x.w + "</td>" + (dr ? "<td>" + x.d + "</td>" : "") + "<td>" + x.l + "</td>") + "<td>" + x.lf + ":" + x.la + "</td>" + (gl ? "<td>" + x.gf + ":" + x.ga + "</td>" : "") + (tv ? "" : "<td>" + (x.diff > 0 ? "+" : "") + x.diff + "</td>") + "<td>" + (x.avg ? x.avg.toFixed(tv ? 1 : 2) : "–") + "</td>" + (full ? "<td>" + ((ex[x.id] || {}).t180 || "–") + "</td><td>" + ((ex[x.id] || {}).hf || "–") + "</td>" : "") + "<td><b>" + x.pts + "</b></td></tr>";
     }).join("") + "</table></div>";
 }
 
@@ -1261,13 +1262,28 @@ function viewStats() {
 }
 function startHint() { return '<div class="card"><p>' + (lang() === "en" ? "Add players on the first tab and start the draw." : "Trage im ersten Reiter die Teilnehmer ein und starte die Auslosung.") + '</p><button class="b p" data-do="tab" data-v="t">' + t("Teilnehmer") + "</button></div>"; }
 
+function tvBets() {
+  if (!S.bet || !S.bet.on || !(S.bets || []).length) return "";
+  return '<div class="card"><h2>🍺 ' + t("Wetten") + "</h2>" + S.bets.slice(-6).reverse().map(function (bt) { return betLine(bt).replace(/<button[\s\S]*?<\/button>/, ""); }).join("") + "</div>";
+}
 function viewTv() {
   var h = '<div class="tvhead"><div class="big">🎯 ' + esc(S.name || (lang() === "en" ? "Darts tournament" : "Dartturnier")) + '</div><button class="b" data-do="tvoff">✕ ' + t("TV-Ansicht beenden") + "</button></div>";
   if (!S.started) return h + startHint();
   var pod = podium();
   if (pod && pod[0] != null) h += '<div class="card champ">🏆 ' + t("Turniersieger") + "<b>" + esc(nm(pod[0])) + "</b></div>";
-  h += '<div class="grid tvboards">'; for (var b = 0; b < S.nb; b++) h += boardCard(b, true); h += "</div>";
   var q = queue().slice(0, 6), bs = busy(-1);
+  if (S.draw.groups) {
+    // Links Boards, Play-offs, nächste Spiele; rechts die komplette Tabelle mit allen Stats
+    var nextH = '<div class="card"><h2>' + t("Nächste Spiele") + "</h2>" + (q.map(function (id, n) { var p = players(id); return '<div class="pl"><span class="mu tn">' + (n + 1) + '.</span><span class="nm">' + esc(nm(p[0])) + " – " + esc(nm(p[1])) + ' <span class="mu">' + esc(B().byId[id].label) + planTag(id) + (bs[p[0]] || bs[p[1]] ? " · ⏳" : "") + "</span></span></div>"; }).join("") || '<p class="mu">' + t(podium() ? "Alle Spiele gespielt." : "Gerade ist kein Spiel bereit. Die nächsten Paarungen ergeben sich aus den laufenden Spielen.") + "</p>") + "</div>";
+    var ko = S.fmt !== "league" && groupsDone() ? viewBracket().replace(/<div class="card champ">[\s\S]*?<\/b><\/div>/, "") : "";
+    h += '<div class="tvgrid"><div class="tvl"><div class="grid tvboards">';
+    for (var b2 = 0; b2 < S.nb; b2++) h += boardCard(b2, true);
+    h += "</div>" + ko + '<div class="grid">' + nextH + '<div class="card"><h2>⏱ ' + t("Wartezeiten") + "</h2>" + waitHtml(6) + "</div></div></div>" +
+      '<div class="tvr">' + S.draw.groups.map(function (_, g) { return '<div class="card"><h2>' + (isLeague() ? (S.name ? esc(S.name) : "Liga") : t("Gruppe") + " " + LETTERS[g]) + ' <span class="mu">· ' + modeTxt("g") + "</span></h2>" + groupTable(g, false, true) + "</div>"; }).join("") + tvBets() + "</div></div>";
+    h += '<div class="tvbrand">' + (QR ? '<img src="' + QR + '" alt="QR" width="120" height="120">' : "") + '<div><div class="tvwm">LEAVE<b>26</b></div><div>' + t("Mit Leave26 geplant. Checkouts sammeln, 180er zählen, mit Freunden vergleichen.") + '</div><div class="mu">' + t("Gratis im Google Play Store – QR-Code scannen") + "</div></div></div>";
+    return h;
+  }
+  h += '<div class="grid tvboards">'; for (var b = 0; b < S.nb; b++) h += boardCard(b, true); h += "</div>";
   var T = stats().filter(function (s) { return s.avg != null; }).sort(function (a, b) { return b.avg - a.avg; }).slice(0, 5);
   h += '<div class="grid"><div class="card"><h2>' + t("Nächste Spiele") + "</h2>" + (q.map(function (id, n) { var p = players(id); return '<div class="pl"><span class="mu tn">' + (n + 1) + '.</span><span class="nm">' + esc(nm(p[0])) + " – " + esc(nm(p[1])) + ' <span class="mu">' + esc(B().byId[id].label) + (bs[p[0]] || bs[p[1]] ? " · ⏳" : "") + "</span></span></div>"; }).join("") || '<p class="mu">' + t(podium() ? "Alle Spiele gespielt." : "Gerade ist kein Spiel bereit. Die nächsten Paarungen ergeben sich aus den laufenden Spielen.") + "</p>") + "</div>" +
     '<div class="card"><h2>' + t("Top Average") + "</h2>" + (T.map(function (s, i) { return '<div class="pl"><span class="mu tn">' + (i + 1) + '.</span><span class="nm">' + esc(nm(s.id)) + "</span><b>" + s.avg.toFixed(2) + "</b></div>"; }).join("") || '<p class="mu">' + t("Noch keine Averages.") + "</p>") + "</div>" +

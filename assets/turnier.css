@@ -95,6 +95,11 @@ body.tv #tp table{font-size:1em}
 #tp .promo{display:flex;align-items:center;gap:14px}
 #tp .promo img{width:72px;height:72px;border-radius:8px;flex:none}
 body.tv #tp .promo{display:none}
+#tp .tvgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
+#tp .tvgrid .tvr .card{margin-bottom:14px}
+#tp .tvgrid .tvr table{font-size:1.15em}
+#tp .tvgrid .tvr td,#tp .tvgrid .tvr th{padding-top:.55em;padding-bottom:.55em}
+@media (max-width:1100px){#tp .tvgrid{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){#tp *{transition:none!important}}
 #tp .pot{font:700 20px/1.2 var(--display);color:var(--ink);margin:10px 0 4px}
 #tp .pot b{color:var(--ac)}
