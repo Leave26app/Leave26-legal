@@ -743,6 +743,51 @@ function planned(bi) {
   return null;
 }
 function planTag(id) { var m = B().byId[id]; return m && m.pb != null && activePlan() ? " · " + t("Board") + " " + (m.pb + 1) : ""; }
+// Board bi ist frei, aber keine eigene Partie spielbar: Restplan so umverteilen, dass eine
+// Partie mit freien Spielern hierher kommt und trotzdem jeder gleich oft an jedem Board spielt.
+function replan(bi) {
+  var plan = activePlan(); if (!plan) return null;
+  var K = 0, games = {}, cnt = {}, rem = [], bz = busy(bi);
+  plan.forEach(function (e) { K = Math.max(K, e.b + 1); });
+  if (bi >= K) return null;
+  plan.forEach(function (e) {
+    var p = players(e.id); if (p[0] == null || p[1] == null) return;
+    p.forEach(function (x) { games[x] = (games[x] || 0) + 1; cnt[x] = cnt[x] || []; for (var b = 0; b < K; b++) cnt[x][b] = cnt[x][b] || 0; });
+    if (resolve(e.id).playable && onBoard(e.id) < 0) rem.push(e);
+    else { var ob = onBoard(e.id); var b2 = ob >= 0 ? ob : e.b; cnt[p[0]][b2]++; cnt[p[1]][b2]++; }
+  });
+  var slack = 0;
+  function cap(x) { return Math.ceil(games[x] / K) + slack; }
+  function fits(e, b) { var p = players(e.id); return cnt[p[0]][b] < cap(p[0]) && cnt[p[1]][b] < cap(p[1]); }
+  function put(e, b, d) { var p = players(e.id); cnt[p[0]][b] += d; cnt[p[1]][b] += d; }
+  var sol = {}, steps = 0;
+  function go(i) {
+    if (i === rem.length) return true;
+    if (++steps > 50000) return false;
+    var e = rem[i], order = [e.b]; for (var b = 0; b < K; b++) if (b !== e.b) order.push(b);
+    for (var q = 0; q < order.length; q++) {
+      if (!fits(e, order[q])) continue;
+      put(e, order[q], 1); sol[e.id] = order[q];
+      if (go(i + 1)) return true;
+      put(e, order[q], -1);
+    }
+    return false;
+  }
+  // erst perfekt ausgeglichen versuchen, sonst darf einer ein Spiel mehr an einem Board haben (3:1 statt 2:2)
+  for (slack = 0; slack <= 0; slack++) {
+    for (var c = 0; c < rem.length; c++) {
+      var e = rem[c], p = players(e.id);
+      if (bz[p[0]] || bz[p[1]] || !fits(e, bi)) continue;
+      put(e, bi, 1); sol = {}; sol[e.id] = bi; steps = 0;
+      var others = rem.filter(function (x) { return x !== e; }), keep = rem; rem = others;
+      var ok = go(0); rem = keep;
+      if (ok) { plan.forEach(function (x) { if (sol[x.id] != null) x.b = sol[x.id]; }); dirty(); return e.id; }
+      // go() hat bei Erfolg nicht aufgeräumt, bei Misserfolg schon: nur die eigene Buchung zurücknehmen
+      put(e, bi, -1);
+    }
+  }
+  return null;
+}
 function nextFor(bi) {
   var plan = activePlan();
   if (plan) {
@@ -752,6 +797,8 @@ function nextFor(bi) {
       var bz = busy(bi), pp = players(e.id);
       if (!bz[pp[0]] && !bz[pp[1]]) return e.id;      // nächste freie Partie, die für dieses Board eingeplant ist
     }
+    var moved = replan(bi);                             // sonst Restplan umbauen, damit das Board nicht leer steht
+    if (moved) return moved;
     var rest = B().list.some(function (m) { return m.st === "g" && m.pb === bi && resolve(m.id).playable; });
     if (rest) return null;                              // alle Partien dieses Boards warten auf Spieler
   }
