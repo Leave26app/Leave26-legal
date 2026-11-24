@@ -338,8 +338,13 @@ function build() {
   if (!S.started || !S.draw) return { list: M, byId: byId, k: 0 };
   var order = 0;
   if (hasGroups()) {
+    var plan = activePlan(), pi = {};
+    if (plan) plan.forEach(function (e, i) { pi[e.id] = { i: i, r: e.r, b: e.b }; });
     groupMatches().forEach(function (gm) {
-      add({ id: gm.id, st: "g", g: gm.g, p: gm.p, no: gm.no, back: gm.back,
+      var e = pi[gm.id];
+      if (e) add({ id: gm.id, st: "g", g: gm.g, p: gm.p, no: e.i + 1, back: gm.back, r: e.r + 1, pb: e.b,
+                   label: t("Runde") + " " + (e.r + 1), order: e.i });
+      else add({ id: gm.id, st: "g", g: gm.g, p: gm.p, no: gm.no, back: gm.back,
             label: isLeague() ? t("Spielnr.") + " " + gm.no : t("Gruppe") + " " + LETTERS[gm.g] + (gm.back ? " · " + t("Rückspiel") : ""), order: order++ });
     });
   }
@@ -737,6 +742,7 @@ function planned(bi) {
   for (var j = 0; j < plan.length; j++) { var e = plan[j]; if (e.b === bi && resolve(e.id).playable && onBoard(e.id) < 0) return e.id; }
   return null;
 }
+function planTag(id) { var m = B().byId[id]; return m && m.pb != null && activePlan() ? " · " + t("Board") + " " + (m.pb + 1) : ""; }
 function nextFor(bi) {
   var plan = activePlan();
   if (plan) {
@@ -998,7 +1004,7 @@ function matchBox(id, opts) {
   var nA = r.a && r.a.p != null ? esc(nm(r.a.p)) : '<span class="mu">' + esc(r.a ? r.a.ph : "") + "</span>";
   var nB = r.b && r.b.p != null ? esc(nm(r.b.p)) : '<span class="mu">' + esc(r.b ? r.b.ph : "") + "</span>";
   var wA = r.done && r.win != null && r.win === p[0], wB = r.done && r.win != null && r.win === p[1];
-  var head = opts.form ? "" : '<div class="mh"><span class="mu">' + esc(m.label) + (m.no ? " · #" + m.no : "") + "</span>" +
+  var head = opts.form ? "" : '<div class="mh"><span class="mu">' + esc(m.label) + planTag(id) + (m.no ? " · #" + m.no : "") + "</span>" +
     (S.wr[id] != null && !r.done ? '<span class="mu">✍ ' + t("Schreiber") + ": " + esc(nm(S.wr[id])) + "</span>" : "") + "</div>";
   if (UI.edit === id || opts.form) {
     var f = function (n, ph, cls) { return '<input class="n ' + (cls || "") + '" name="' + n + '" inputmode="decimal" placeholder="' + ph + '" value="' + (res[n] != null ? res[n] : "") + '">'; };
@@ -1157,8 +1163,8 @@ function viewBoards() {
     (q.slice(0, 15).map(function (id, n) {
       var p = players(id), bz = bs[p[0]] || bs[p[1]], free = [];
       for (var b2 = 0; b2 < S.nb; b2++) if (!S.board[b2]) free.push(b2);
-      return '<div class="pl"><span class="mu tn">' + (n + 1) + '.</span><span class="nm">' + esc(nm(p[0])) + " – " + esc(nm(p[1])) + ' <span class="mu">' + esc(B().byId[id].label) + (bz ? " · ⏳ " + t("spielt gerade") : "") + "</span></span>" +
-        (bz ? "" : free.slice(0, 3).map(function (fb) { return '<button class="b sm" data-do="assign" data-b="' + fb + '" data-id="' + id + '">' + t("Board") + " " + (fb + 1) + "</button>"; }).join("")) + "</div>";
+      return '<div class="pl"><span class="mu tn">' + (n + 1) + '.</span><span class="nm">' + esc(nm(p[0])) + " – " + esc(nm(p[1])) + ' <span class="mu">' + esc(B().byId[id].label) + planTag(id) + (bz ? " · ⏳ " + t("spielt gerade") : "") + "</span></span>" +
+        (bz ? "" : free.filter(function (fb) { var pm = B().byId[id]; return pm.pb == null || !activePlan() || fb === pm.pb; }).slice(0, 3).map(function (fb) { return '<button class="b sm" data-do="assign" data-b="' + fb + '" data-id="' + id + '">' + t("Board") + " " + (fb + 1) + "</button>"; }).join("")) + "</div>";
     }).join("") || '<p class="mu">' + t(podium() ? "Alle Spiele gespielt." : "Gerade ist kein Spiel bereit. Die nächsten Paarungen ergeben sich aus den laufenden Spielen.") + "</p>") + "</div></div>";
   h += '<details class="card"><summary><b>' + t("Regeln") + '</b></summary><ul class="rules"><li>' + rulesFmt() + "</li><li>" + t("Ausscore: Ist ein Leg nach 20 Aufnahmen nicht beendet, wirft jeder noch 3 Darts. Mehr Punkte gewinnt das Leg.") + "</li>" + (S.writer ? "<li>" + t("Der Verlierer des letzten Spiels am Board schreibt das nächste Spiel. Ist er selbst dran, übernimmt ein anderer freier Spieler.") + "</li>" : "") + "</ul></details>";
   return h;
