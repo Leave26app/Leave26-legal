@@ -8,7 +8,13 @@
 #tp-nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
 #tp-nav button{flex:1;padding:10px 6px;border:1px solid var(--bd);background:var(--card);color:var(--ink-2);border-radius:999px;font:600 14px/1.2 var(--body);cursor:pointer}
 #tp-nav button.on{background:var(--brand) border-box;color:var(--night);border-color:transparent}
-@media (max-width:640px){#tp-nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1*var(--gutter)) 14px;padding:0 var(--gutter)}#tp-nav::-webkit-scrollbar{display:none}#tp-nav button{flex:none;padding:9px 14px}}
+@media (max-width:640px){#tp-nav{gap:6px}#tp-nav button{flex:1 1 calc(33.3% - 6px);padding:9px 4px;font-size:13px;text-align:center}}
+#tp .dot{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.3);margin-right:10px;cursor:pointer;padding:0}
+#tp .eta{color:var(--ink-2,#aab);font-size:14px;align-self:center;margin-left:auto}
+#tp .pause{margin:0 2px 14px;color:var(--ink-2,#aab)}
+#tp .stakes{display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%}
+#tp .stakes .b{min-width:62px}
+#tp .tvhead .eta{font-size:1.1em;margin:0 16px 0 auto}
 #tp .card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:14px;min-width:0}
 #tp details.card>summary{cursor:pointer;color:var(--ink)}
 #tp .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}

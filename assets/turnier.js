@@ -112,7 +112,10 @@ var EN = {
   "Noch niemand ausgeschieden – Wetten starten, sobald der Erste raus ist.": "Nobody is out yet – betting starts once the first player is eliminated.",
   "Gerade ist kein Spiel offen, auf das gewettet werden kann.": "No match open for betting right now.",
   "Quoten aus Average und Leg-Differenz im Turnier. Ohne Daten gilt 50:50.": "Odds from average and leg difference in this tournament. Without data it is 50:50.",
-  "Wette löschen": "Delete bet", "Trotzdem hier spielen (der Plan wird angepasst):": "Play here anyway (the plan adapts):", "Hier spielen": "Play here", "Abweichend vom Plan – der Rest wird neu verteilt": "Off plan – the rest gets redistributed", "wartet, bis beide frei sind": "waiting until both are free", "Liga: Jeder spielt an jedem Board gleich oft.": "League: everyone plays equally often on each board.", "Mehr Statistik": "More stats", "ab 100": "100+", "Wetten auf dieses Spiel": "Bets on this match", "Statt Bier geht alles, was im Glas ist.": "Anything in your glass counts, not just beer.",
+  "Wette löschen": "Delete bet", "Pause": "Resting", "schreibt an Board {0}": "scoring board {0}",
+  "Voraussichtliches Ende": "Expected finish", "Ansage an": "Announcements on", "Ansage aus": "Announcements off",
+  "Endstand teilen": "Share final standings", "Zwischenstand teilen": "Share current standings", "Endstand": "Final standings", "Zwischenstand": "Current standings",
+  "Farbe ändern": "Change colour", "Trotzdem hier spielen (der Plan wird angepasst):": "Play here anyway (the plan adapts):", "Hier spielen": "Play here", "Abweichend vom Plan – der Rest wird neu verteilt": "Off plan – the rest gets redistributed", "wartet, bis beide frei sind": "waiting until both are free", "Liga: Jeder spielt an jedem Board gleich oft.": "League: everyone plays equally often on each board.", "Mehr Statistik": "More stats", "ab 100": "100+", "Wetten auf dieses Spiel": "Bets on this match", "Statt Bier geht alles, was im Glas ist.": "Anything in your glass counts, not just beer.",
   "Play-offs für die Top": "Play-offs for the top", "Spiel um die Rote Laterne": "Wooden spoon match",
   "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach steigen die Besten nach Ligaplatz in die Play-offs ein: 3. gegen 4., der Sieger gegen den 2., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then the best enter the play-offs by league position: 3rd vs 4th, the winner vs 2nd, the winner in the final vs the league winner.",
   "Liga + Stufenleiter: Erst spielt jeder gegen jeden. Danach spielt der 2. gegen den 3., der Sieger im Finale gegen den Ligasieger.": "League + stepladder: everyone plays everyone first. Then 2nd plays 3rd, the winner meets the league winner in the final.",
@@ -156,6 +159,9 @@ var UI = { edit: null, err: {}, pend: null, backup: "", imp: "", tv: location.ha
 function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 function num(v) { v = String(v == null ? "" : v).trim().replace(",", "."); if (v === "") return null; var n = parseFloat(v); return isNaN(n) ? null : n; }
 function P(id) { for (var i = 0; i < S.players.length; i++) if (S.players[i].id === id) return S.players[i]; return null; }
+var PAL = ["#FF5A5A", "#45A9FF", "#3EDC8A", "#B886FF", "#FF9F43", "#F2C14E", "#FF6FB5", "#2DD4BF", "#A3E635", "#E879F9", "#94A3B8", "#FDE68A"];
+function pc(id) { var p = P(id); if (!p) return ""; if (p.col) return p.col; var i = S.players.indexOf(p); return PAL[(i < 0 ? 0 : i) % PAL.length]; }
+function cn(id) { return '<span class="pc" style="color:' + pc(id) + '">' + esc(nm(id)) + "</span>"; }
 function nm(id) { var p = P(id); return p ? p.name : "?"; }
 function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
 var LETTERS = "ABCDEFGH";
@@ -571,9 +577,10 @@ function betState(bt) {
   var won = bt.kind === "w" ? r.win === bt.pick : (res.la + ":" + res.lb) === bt.pick;
   return { won: won, sips: won ? Math.round(bt.stake * bt.q) : bt.stake };
 }
-function placeBet(id, form) {
+function stakeOpts() { var mx = (S.bet && S.bet.max) || 10, o = [1, 3, 5, 10].filter(function (v) { return v <= mx; }); if (o.indexOf(mx) < 0) o.push(mx); return o; }
+function placeBet(id, form, st) {
   var g = function (n) { var el = form.querySelector('[name="' + n + '"]'); return el ? el.value : ""; };
-  var by = +g("by"), pick = g("pick"), stake = Math.round(num(g("stake")) || 0);
+  var by = +g("by"), pick = g("pick"), stake = Math.round(num(st != null ? st : g("stake")) || 0);
   if (!betOpen(id) || bettors(id).indexOf(by) < 0 || !pick || stake < 1) return;
   stake = Math.min(stake, S.bet.max || 10);
   var o = outcomes(id), p = players(id), bt = { id: S.bid++, m: id, by: by, stake: stake };
@@ -603,7 +610,7 @@ function viewBets() {
       '<div class="chips">' + '<div class="chip"><div class="mu">' + t("Sieg") + " " + esc(nm(p[0])) + "</div><div><b>" + fmtQ(quote(o.win[0])) + '</b></div></div><div class="chip"><div class="mu">' + t("Sieg") + " " + esc(nm(p[1])) + "</div><div><b>" + fmtQ(quote(o.win[1])) + "</b></div></div></div>" +
       '<form class="bet row" data-id="' + m.id + '"><label>' + t("Wer wettet") + ' <select name="by">' + bs.map(function (x) { return '<option value="' + x + '">' + esc(nm(x)) + "</option>"; }).join("") + "</select></label>" +
       "<label>" + t("Tipp") + ' <select name="pick">' + opts.map(function (x) { return '<option value="' + esc(x[0]) + '">' + esc(x[1]) + "</option>"; }).join("") + "</select></label>" +
-      "<label>" + t("Schlücke") + ' <input class="n" name="stake" inputmode="numeric" value="3"></label><button class="b p" type="submit">🍺 ' + t("Wette platzieren") + "</button></form>" +
+      '<div class="stakes"><span class="mu">' + t("Schlücke") + ":</span>" + stakeOpts().map(function (v) { return '<button class="b p" type="submit" data-stake="' + v + '">🍺 ' + v + "</button>"; }).join("") + "</div></form>" +
       (mine.length ? '<h3 class="sub">' + t("Wetten auf dieses Spiel") + "</h3>" + mine.map(betLine).join("") : "") + "</div>";
   });
   var done = (S.bets || []).filter(function (bt) { return betState(bt); });
@@ -794,9 +801,10 @@ function assignTo(bi, id) {
   if (S.board[bi]) return;
   var m = B().byId[id];
   if (m && m.st === "g" && activePlan() && m.pb !== bi && !replan(bi, id)) return;   // würde jemanden auf 4:0 bringen
-  S.board[bi] = id; S.t0 = S.t0 || Date.now(); if (S.defer) delete S.defer[id];
+  S.board[bi] = id; S.t0 = S.t0 || Date.now(); if (S.defer) delete S.defer[id]; stamp(id);
   if (S.writer) { var w = pickWriter(bi, id); if (w != null) { S.wr[id] = w; S.wc[w] = (S.wc[w] || 0) + 1; } }
 }
+function stamp(id) { S.ts = S.ts || {}; S.ts[id] = { s: Date.now() }; }
 function nextFor(bi) {
   var plan = activePlan();
   if (plan) {
@@ -829,7 +837,7 @@ function pickWriter(bi, id) {
 function callNext(bi) {
   if (S.board[bi]) return;
   var id = nextFor(bi); if (!id) return;
-  S.board[bi] = id; S.t0 = S.t0 || Date.now(); if (S.defer) delete S.defer[id];
+  S.board[bi] = id; S.t0 = S.t0 || Date.now(); if (S.defer) delete S.defer[id]; stamp(id);
   if (S.writer) { var w = pickWriter(bi, id); if (w != null) { S.wr[id] = w; S.wc[w] = (S.wc[w] || 0) + 1; } }
 }
 function freeBoard(bi) {
@@ -874,10 +882,10 @@ function startDraw() {
     d.swiss = [r1];
   }
   else d.seeds = ps.slice();
-  S.draw = d; S.started = true; S.res = {}; S.bets = []; S.board = {}; S.wr = {}; S.last = {}; S.wc = {}; S.fin = {}; S.t0 = null; S.tab = "p";
+  S.draw = d; S.started = true; S.res = {}; S.bets = []; S.ts = {}; S.board = {}; S.wr = {}; S.last = {}; S.wc = {}; S.fin = {}; S.t0 = null; S.tab = "p";
   dirty(); syncBoards();
 }
-function resetTournament() { S.bets = []; S.defer = {}; S.started = false; S.draw = null; S.res = {}; S.board = {}; S.wr = {}; S.last = {}; S.wc = {}; S.fin = {}; S.t0 = null; }
+function resetTournament() { S.ts = {}; S.bets = []; S.defer = {}; S.started = false; S.draw = null; S.res = {}; S.board = {}; S.wr = {}; S.last = {}; S.wc = {}; S.fin = {}; S.t0 = null; }
 function hasResults() { return Object.keys(S.res).some(function (k) { var r = S.res[k]; return r && (r.la != null || r.lb != null); }); }
 
 function saveResult(id, form) {
@@ -893,6 +901,7 @@ function saveResult(id, form) {
   delete UI.err[id];
   S.res[id] = r; dirty();
   var now = Date.now(), p = players(id);
+  if (S.ts && S.ts[id] && onBoard(id) >= 0) S.ts[id].e = now;
   if (p[0] != null) S.fin[p[0]] = now; if (p[1] != null) S.fin[p[1]] = now;
   var bi = onBoard(id);
   if (bi >= 0) { freeBoard(bi); dirty(); if (S.auto) callNext(bi); }
@@ -961,7 +970,7 @@ function viewSetup() {
       '<details class="multi"><summary>' + t("Mehrere Namen auf einmal (einer pro Zeile)") + '</summary><textarea id="tp-multi" rows="5"></textarea><button class="b" data-do="addmulti">' + t("Namen übernehmen") + "</button></details>") +
     '<div class="plist">' + (S.players.map(function (p) {
       var inT = !locked || S.draw.ids.indexOf(p.id) >= 0;
-      return '<div class="pl' + (inT ? "" : " out") + '"><span class="nm">' + esc(p.name) + '</span>' +
+      return '<div class="pl' + (inT ? "" : " out") + '"><button class="dot" data-do="col" data-id="' + p.id + '" style="background:' + pc(p.id) + '" title="' + t("Farbe ändern") + '" aria-label="' + t("Farbe ändern") + '"></button><span class="nm">' + esc(p.name) + '</span>' +
         (S.stake ? '<label class="chk"><input type="checkbox" data-pf="paid" data-id="' + p.id + '"' + (p.paid ? " checked" : "") + "> " + t("Bezahlt") + "</label>" : "") +
         (locked ? "" : '<label class="chk"><input type="checkbox" data-pf="here" data-id="' + p.id + '"' + (p.here ? " checked" : "") + "> " + t("Anwesend") + "</label>" +
         '<button class="x" data-do="del" data-id="' + p.id + '" title="' + t("Entfernen") + '" aria-label="' + t("Entfernen") + '">✕</button>') + "</div>";
@@ -1090,9 +1099,9 @@ function matchBox(id, opts) {
 function groupTable(g, tv, full) {
   var ex = {}; if (full) stats().forEach(function (x) { ex[x.id] = x; });
   var q = S.fmt === "groups" ? S.adv : S.fmt === "ladder" ? S.ltop : 0, rows = stand(g), dr = fix2("g"), gl = isSets("g") && rows.some(function (x) { return x.gf || x.ga; });
-  return '<div class="sc"><table><tr><th>#</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th>" + (tv ? "" : "<th>" + t("S") + "</th>" + (dr ? "<th>" + t("U") + "</th>" : "") + "<th>" + t("N") + "</th>") + "<th>" + unit("g") + "</th>" + (gl ? "<th>" + t("Legs") + "</th>" : "") + (tv ? "" : "<th>" + t("Diff") + "</th>") + "<th>" + t("Ø") + "</th>" + (full ? "<th>180</th><th>Finish</th>" : "") + "<th>" + t("Pkt") + "</th></tr>" +
+  return '<div class="sc"><table><tr><th>#</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Pkt") + "</th><th>" + t("Sp") + "</th>" + (tv ? "" : "<th>" + t("S") + "</th>" + (dr ? "<th>" + t("U") + "</th>" : "") + "<th>" + t("N") + "</th>") + "<th>" + unit("g") + "</th>" + (gl ? "<th>" + t("Legs") + "</th>" : "") + (tv ? "" : "<th>" + t("Diff") + "</th>") + "<th>" + t("Ø") + "</th>" + (full ? "<th>180</th><th>Finish</th>" : "") + "</tr>" +
     rows.map(function (x, i) {
-      return '<tr class="' + (i < q ? "q" : "") + '"><td>' + (i + 1) + '</td><td class="l">' + esc(nm(x.id)) + "</td><td>" + x.sp + "</td>" + (tv ? "" : "<td>" + x.w + "</td>" + (dr ? "<td>" + x.d + "</td>" : "") + "<td>" + x.l + "</td>") + "<td>" + x.lf + ":" + x.la + "</td>" + (gl ? "<td>" + x.gf + ":" + x.ga + "</td>" : "") + (tv ? "" : "<td>" + (x.diff > 0 ? "+" : "") + x.diff + "</td>") + "<td>" + (x.avg ? x.avg.toFixed(tv ? 1 : 2) : "–") + "</td>" + (full ? "<td>" + ((ex[x.id] || {}).t180 || "–") + "</td><td>" + ((ex[x.id] || {}).hf || "–") + "</td>" : "") + "<td><b>" + x.pts + "</b></td></tr>";
+      return '<tr class="' + (i < q ? "q" : "") + '"><td>' + (i + 1) + '</td><td class="l">' + cn(x.id) + "</td><td><b>" + x.pts + "</b></td><td>" + x.sp + "</td>" + (tv ? "" : "<td>" + x.w + "</td>" + (dr ? "<td>" + x.d + "</td>" : "") + "<td>" + x.l + "</td>") + "<td>" + x.lf + ":" + x.la + "</td>" + (gl ? "<td>" + x.gf + ":" + x.ga + "</td>" : "") + (tv ? "" : "<td>" + (x.diff > 0 ? "+" : "") + x.diff + "</td>") + "<td>" + (x.avg ? x.avg.toFixed(tv ? 1 : 2) : "–") + "</td>" + (full ? "<td>" + ((ex[x.id] || {}).t180 || "–") + "</td><td>" + ((ex[x.id] || {}).hf || "–") + "</td>" : "") + "</tr>";
     }).join("") + "</table></div>";
 }
 
@@ -1212,21 +1221,21 @@ function boardCard(bi, tv) {
       (nx ? '<p>' + t("Als Nächstes") + ": <b>" + esc(nm(players(nx)[0])) + "</b> " + t("gegen") + " <b>" + esc(nm(players(nx)[1])) + '</b> <span class="mu">' + esc(B().byId[nx].label) + '</span></p><button class="b p" data-do="call" data-b="' + bi + '">📣 ' + t("Nächstes Spiel ansagen") + "</button>" : '<p class="mu">' + t("Keine Partie verfügbar.") + "</p>") + "</div>";
   }
   var m = B().byId[id], p = players(id);
-  if (tv) return '<div class="card tvb"><div class="mu">' + t("Board").toUpperCase() + " " + (bi + 1) + " · " + esc(m.label) + '</div><div class="big">' + esc(nm(p[0])) + '</div><div class="mu">' + t("gegen") + '</div><div class="big">' + esc(nm(p[1])) + '</div><div class="mu">' + modeTxt(m.st) + (S.wr[id] != null ? " · ✍ " + esc(nm(S.wr[id])) : "") + "</div></div>";
+  if (tv) return '<div class="card tvb"><div class="mu">' + t("Board").toUpperCase() + " " + (bi + 1) + " · " + esc(m.label) + '</div><div class="big">' + cn(p[0]) + '</div><div class="mu">' + t("gegen") + '</div><div class="big">' + cn(p[1]) + '</div><div class="mu">' + modeTxt(m.st) + (S.wr[id] != null ? " · ✍ " + esc(nm(S.wr[id])) : "") + "</div></div>";
   return '<div class="card"><h2>🎯 ' + t("Board") + " " + (bi + 1) + ' <span class="mu">· ' + esc(m.label) + " · " + modeTxt(m.st) + "</span></h2>" +
-    '<div class="call">' + esc(nm(p[0])) + ' <span class="mu">' + t("gegen") + "</span> " + esc(nm(p[1])) + "</div>" +
+    '<div class="call">' + cn(p[0]) + ' <span class="mu">' + t("gegen") + "</span> " + cn(p[1]) + "</div>" +
     (S.wr[id] != null ? '<p class="mu ctr">✍ ' + t("Schreiber") + ": <b>" + esc(nm(S.wr[id])) + "</b></p>" : "") +
     matchBox(id, { form: true }) + '<button class="b sm" data-do="unboard" data-b="' + bi + '">' + t("Zurück in die Warteschlange") + "</button></div>";
 }
 function viewBoards() {
   if (!S.started) return startHint();
   var q = queue(), bs = busy(-1), h = "";
-  h += '<div class="row tvrow"><button class="b" data-do="tv">📺 ' + t("TV-Ansicht") + "</button></div>";
+  h += '<div class="row tvrow"><button class="b" data-do="tv">📺 ' + t("TV-Ansicht") + "</button>" + etaHtml() + "</div>";
   var champ = podium();
   if (champ && champ[0] != null) h += '<div class="card champ">🏆 ' + t("Turniersieger") + "<b>" + esc(nm(champ[0])) + "</b></div>";
   h += '<div class="grid">';
   for (var b = 0; b < S.nb; b++) h += boardCard(b);
-  h += "</div>";
+  h += "</div>" + pauseHtml();
   h += '<div class="grid"><div class="card"><h2>⏱ ' + t("Wartezeiten") + "</h2>" + waitHtml() + "</div>" +
     '<div class="card"><h2>' + t("Warteschlange") + ' <span class="mu">(' + q.length + ")</span></h2>" +
     (q.slice(0, 15).map(function (id, n) {
@@ -1254,6 +1263,7 @@ function viewStats() {
   var chip = function (title, v) { return '<div class="chip"><div class="mu">' + title + "</div><div>" + v + "</div></div>"; };
   var medal = ["🥇", "🥈", "🥉", "4."];
   return (pod && pod[0] != null ? '<div class="card champ">🏆 ' + t("Turniersieger") + "<b>" + esc(nm(pod[0])) + "</b></div>" : "") +
+    '<div class="row"><button class="b p" data-do="share">📤 ' + t(pod ? "Endstand teilen" : "Zwischenstand teilen") + "</button></div>" +
     prizeResult() + '<div class="chips">' + chip("🎯 " + t("Bestes Ø-Average"), best("avg", false, function (v) { return v.toFixed(2); })) + chip("💯 " + t("Meiste 180er"), best("t180", false, function (v) { return v; })) +
     chip("🔥 " + t("Höchstes Finish"), best("hf", false, function (v) { return v; })) + chip("⚡ " + t("Kürzestes Leg"), best("bl", true, function (v) { return v + (lang() === "en" ? " darts" : " Darts"); })) + "</div>" +
     '<div class="card"><h2>' + t("Statistik") + (pod ? "" : ' <span class="mu">(' + t("vorläufig") + ")</span>") + '</h2><div class="sc"><table><tr><th>' + t("Platz") + '</th><th class="l">' + (lang() === "en" ? "Player" : "Spieler") + "</th><th>" + t("Sp") + "</th><th>" + t("S") + "</th><th>" + t("N") + "</th><th>" + unit("g") + "</th><th>" + t("Ø") + "</th><th>" + t("Bester Ø") + "</th><th>180</th><th>" + (lang() === "en" ? "Finish" : "Finish") + "</th><th>" + (lang() === "en" ? "Best leg" : "Bestes Leg") + "</th></tr>" +
@@ -1267,7 +1277,8 @@ function tvBets() {
   return '<div class="card"><h2>🍺 ' + t("Wetten") + "</h2>" + S.bets.slice(-6).reverse().map(function (bt) { return betLine(bt).replace(/<button[\s\S]*?<\/button>/, ""); }).join("") + "</div>";
 }
 function viewTv() {
-  var h = '<div class="tvhead"><div class="big">🎯 ' + esc(S.name || (lang() === "en" ? "Darts tournament" : "Dartturnier")) + '</div><button class="b" data-do="tvoff">✕ ' + t("TV-Ansicht beenden") + "</button></div>";
+  var h = '<div class="tvhead"><div class="big">🎯 ' + esc(S.name || (lang() === "en" ? "Darts tournament" : "Dartturnier")) + "</div>" + etaHtml() +
+    '<div class="row"><button class="b" data-do="say">' + (UI.say ? "🔊 " + t("Ansage an") : "🔇 " + t("Ansage aus")) + '</button><button class="b" data-do="tvoff">✕ ' + t("TV-Ansicht beenden") + "</button></div></div>";
   if (!S.started) return h + startHint();
   var pod = podium();
   if (pod && pod[0] != null) h += '<div class="card champ">🏆 ' + t("Turniersieger") + "<b>" + esc(nm(pod[0])) + "</b></div>";
@@ -1296,6 +1307,139 @@ function viewTv() {
   return h;
 }
 
+/* ---------- Prognose Turnierende ---------- */
+// Erwartete Anzahl Legs (bzw. Sätze) eines "First to n" bei gleich starken Spielern
+function expLegs(n) { var e = 0; for (var k = 0; k < n; k++) e += (n + k) * 2 * binom(n - 1 + k, k) * Math.pow(0.5, n + k); return e; }
+function expMatch(st) {
+  if (fix2(st)) return 2;
+  var md = mode(st), n = need(st);
+  return md.sets ? expLegs(n) * expLegs((md.sets + 1) / 2) : expLegs(n);
+}
+function playedLegs(id) {
+  var r = S.res[id], m = B().byId[id]; if (!r || !m) return 0;
+  if (r.g1 != null && r.g2 != null) return r.g1 + r.g2;
+  return isSets(m.st) ? (r.la + r.lb) * expLegs((mode(m.st).sets + 1) / 2) : r.la + r.lb;
+}
+function msPerLeg() {
+  var ms = 0, legs = 0;
+  Object.keys(S.ts || {}).forEach(function (id) { var x = S.ts[id]; if (x.e && x.e > x.s && S.res[id]) { ms += x.e - x.s; legs += playedLegs(id); } });
+  return legs >= 4 ? ms / legs : 7 * 60000;            // ohne Messwerte 7 Minuten pro Leg
+}
+function eta() {
+  if (!S.started || podium()) return null;
+  var b = B(), per = msPerLeg(), now = Date.now(), end = {}, free = [], i;
+  b.list.forEach(function (m) { if (resolve(m.id).done) end[m.id] = now; });
+  for (i = 0; i < S.nb; i++) {
+    var cur = S.board[i];
+    if (cur && b.byId[cur]) { var st = (S.ts && S.ts[cur] && S.ts[cur].s) || now; var f = Math.max(now + 60000, st + expMatch(b.byId[cur].st) * per); end[cur] = f; free.push(f); }
+    else free.push(now);
+  }
+  var open = b.list.filter(function (m) { return end[m.id] == null; }), gEnd = now;
+  b.list.forEach(function (m) { if (m.st === "g" && end[m.id] != null) gEnd = Math.max(gEnd, end[m.id]); });
+  var guard = 0;
+  while (open.length && guard++ < 5000) {
+    var gOpen = open.some(function (m) { return m.st === "g"; }), pick = null, ready = 0;
+    for (i = 0; i < open.length && !pick; i++) {
+      var m = open[i], ok = true, r0 = 0;
+      if (m.st !== "g") {
+        if (gOpen) ok = false; else r0 = gEnd;
+        (m.src || []).forEach(function (x) { var d = x.w || x.l; if (!d) return; if (end[d] == null) ok = false; else r0 = Math.max(r0, end[d]); });
+      }
+      if (ok) { pick = m; ready = r0; }
+    }
+    if (!pick) break;
+    free.sort(function (a, c) { return a - c; });
+    var fin = Math.max(free[0], ready) + expMatch(pick.st) * per;
+    free[0] = fin; end[pick.id] = fin;
+    if (pick.st === "g") gEnd = Math.max(gEnd, fin);
+    open.splice(open.indexOf(pick), 1);
+  }
+  var last = now; Object.keys(end).forEach(function (k) { last = Math.max(last, end[k]); });
+  return last;
+}
+function etaHtml() {
+  var e = eta(); if (!e) return "";
+  var d = new Date(e), hm = ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+  return '<span class="eta">⏳ ' + t("Voraussichtliches Ende") + ": <b>" + (lang() === "en" ? "approx. " : "ca. ") + hm + "</b></span>";
+}
+// Wer gerade nicht am Board steht und noch im Turnier ist
+function pauseHtml() {
+  if (!S.started || podium()) return "";
+  var el = eliminated(), onB = {}, wb = {};
+  for (var k in S.board) { var id = S.board[k]; if (!id) continue; players(id).forEach(function (p) { if (p != null) onB[p] = 1; }); if (S.wr[id] != null) wb[S.wr[id]] = +k + 1; }
+  var list = S.draw.ids.filter(function (x) { return !onB[x] && !el[x]; });
+  if (!list.length) return "";
+  return '<p class="pause">☕ ' + t("Pause") + ": " + list.map(function (x) { return "<b>" + cn(x) + "</b>" + (wb[x] ? ' <span class="mu">(' + t("schreibt an Board {0}", wb[x]) + ")</span>" : ""); }).join(", ") + "</p>";
+}
+
+/* ---------- Stand als Bild teilen ---------- */
+function shareRows() {
+  var pod = podium(), place = {}, pl = places();
+  if (pl) pl.forEach(function (q) { q.ids.forEach(function (id) { place[id] = q.from; }); });
+  var st = {}; stats().forEach(function (x) { st[x.id] = x; });
+  if (!pod && S.draw.groups && S.draw.groups.length === 1) return stand(0).map(function (r, i) { return { n: i + 1, id: r.id, pts: r.pts, leg: r.lf + ":" + r.la, avg: st[r.id] && st[r.id].avg }; });
+  return stats().filter(function (x) { return x.sp > 0; })
+    .sort(function (a, b) { return (place[a.id] || 99) - (place[b.id] || 99) || (b.avg || 0) - (a.avg || 0) || b.w - a.w; })
+    .map(function (r, i) { return { n: place[r.id] || i + 1, id: r.id, pts: null, leg: r.lf + ":" + r.la, avg: r.avg }; });
+}
+function shareImage() {
+  var c = document.createElement("canvas"), W = 1080, H = 1350; c.width = W; c.height = H;
+  var x = c.getContext("2d"), pod = podium(), rows = shareRows().slice(0, 12), en = lang() === "en";
+  var F = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+  var g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#161b30"); g.addColorStop(1, "#06080f"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.fillStyle = "#8a93a8"; x.font = "600 32px " + F; x.fillText(t(pod ? "Endstand" : "Zwischenstand"), 80, 110);
+  x.fillStyle = "#fff"; x.font = "800 62px " + F; x.fillText((S.name || (en ? "Darts tournament" : "Dartturnier")).slice(0, 26), 80, 185);
+  var y = 250;
+  if (pod && pod[0] != null) { x.fillStyle = "#F2C14E"; x.font = "800 54px " + F; x.fillText("🏆 " + nm(pod[0]), 80, y + 30); y += 100; }
+  var hasP = rows.length && rows[0].pts != null, cP = 640, cL = 780, cA = 930;
+  x.font = "600 28px " + F; x.fillStyle = "#8a93a8";
+  x.fillText("#", 84, y); x.fillText(en ? "Player" : "Spieler", 150, y);
+  if (hasP) x.fillText(t("Pkt"), cP, y); x.fillText(unit("g"), cL, y); x.fillText(t("Ø"), cA, y);
+  y += 20;
+  rows.forEach(function (r, i) {
+    y += 66; x.fillStyle = i % 2 ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.07)"; x.fillRect(60, y - 46, W - 120, 62);
+    x.font = "700 36px " + F; x.fillStyle = "#fff"; x.fillText(String(r.n), 84, y);
+    x.fillStyle = pc(r.id); x.fillText(nm(r.id).slice(0, 18), 150, y);
+    x.fillStyle = "#fff"; if (hasP) x.fillText(String(r.pts), cP, y);
+    x.font = "500 34px " + F; x.fillText(r.leg, cL, y); x.fillText(r.avg ? r.avg.toFixed(1) : "–", cA, y);
+  });
+  var bal = {};
+  (S.bets || []).forEach(function (bt) { var s2 = betState(bt); if (!s2) return; var q = bal[bt.by] = bal[bt.by] || { o: 0, d: 0 }; if (s2.won) q.o += s2.sips; else q.d += s2.sips; });
+  var ks = Object.keys(bal).sort(function (a, b) { return bal[b].o - bal[a].o; });
+  if (ks.length && y < H - 280) {
+    y += 80; x.font = "700 32px " + F; x.fillStyle = "#F2C14E"; x.fillText("🍺 " + t("Schluck-Bilanz"), 80, y);
+    x.font = "500 28px " + F; x.fillStyle = "#c3c8d6";
+    ks.slice(0, Math.max(1, Math.floor((H - 200 - y) / 42))).forEach(function (k) { y += 42; x.fillText(nm(+k) + ": " + bal[k].o + " " + (en ? "handed out" : "verteilt") + ", " + bal[k].d + " " + (en ? "drunk" : "getrunken"), 80, y); });
+  }
+  x.font = "800 40px " + F; x.fillStyle = "#fff"; x.fillText("LEAVE", 80, H - 70); var w = x.measureText("LEAVE").width;
+  x.fillStyle = "#F2C14E"; x.fillText("26", 80 + w, H - 70);
+  x.font = "500 24px " + F; x.fillStyle = "#8a93a8"; x.fillText(en ? "Planned with the Leave26 tournament planner" : "Geplant mit dem Leave26 Turnier-Planer", 80 + w + 70, H - 76);
+  UI.lastShare = c;
+  c.toBlob(function (blob) {
+    if (!blob) return;
+    var name = (S.name || "turnier").replace(/[^\w-]+/g, "_") + ".png";
+    try { var file = new File([blob], name, { type: "image/png" }); if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: S.name || "Dartturnier" }).catch(function () {}); return; } } catch (e) {}
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  }, "image/png");
+}
+
+/* ---------- Sprachansage am TV ---------- */
+function speak(txt) {
+  try { var u = new SpeechSynthesisUtterance(txt); u.lang = lang() === "en" ? "en-GB" : "de-DE"; u.rate = 0.95; window.speechSynthesis.speak(u); } catch (e) {}
+}
+function announce() {
+  if (!UI.say || !window.speechSynthesis) return;
+  UI.ann = UI.ann || {};
+  for (var bi = 0; bi < S.nb; bi++) {
+    var id = S.board[bi] || null;
+    if (id && UI.ann[bi] !== id) {
+      var p = players(id), en = lang() === "en";
+      speak("Board " + (bi + 1) + ". " + nm(p[0]) + (en ? " versus " : " gegen ") + nm(p[1]) + "." + (S.wr[id] != null ? (en ? " Scorer: " : " Schreiber: ") + nm(S.wr[id]) + "." : ""));
+    }
+    UI.ann[bi] = id;
+  }
+}
+
 /* ---------- Rendern ---------- */
 // TV: alles so gross zoomen, dass der Bildschirm in der Höhe ausgefüllt ist
 function fitTv() {
@@ -1318,8 +1462,9 @@ function render() {
   var intro = document.getElementById("tp-intro");
   var h1 = document.getElementById("tp-h1");
   if (h1) h1.textContent = t("Turnier-Planer");
-  if (intro) { intro.textContent = t("Plane dein lokales Dartturnier kostenlos: Teilnehmer eintragen, auslosen, Spiele auf die Boards verteilen und alles live auf dem TV zeigen. Alles bleibt in deinem Browser gespeichert."); }
+  if (intro) { intro.textContent = t("Plane dein lokales Dartturnier kostenlos: Teilnehmer eintragen, auslosen, Spiele auf die Boards verteilen und alles live auf dem TV zeigen. Alles bleibt in deinem Browser gespeichert."); intro.hidden = !!S.started; }
   var nav = document.getElementById("tp-nav"), view = document.getElementById("tp-view");
+  announce();   // Ansage läuft weiter, auch wenn man kurz aus der TV-Ansicht raus ist
   if (UI.tv) { nav.innerHTML = ""; view.innerHTML = viewTv(); fitTv(); return; }
   root.style.zoom = "";
   var tabs = TABS.filter(function (x) { return !(x[0] === "w" && !(S.bet && S.bet.on)) && !(x[0] === "k" && (S.fmt === "league" || (S.fmt === "swiss" && S.sko < 2))); });
@@ -1372,7 +1517,14 @@ root.addEventListener("click", function (e) {
     case "cancel": UI.edit = null; break;
     case "call": callNext(+bi); break;
     case "assign": assignTo(+bi, id); break;
-    case "unboard": var mid = S.board[+bi]; S.board[+bi] = null; if (mid) { S.defer = S.defer || {}; S.defer[mid] = Date.now(); if (S.wr[mid] != null) { S.wc[S.wr[mid]]--; delete S.wr[mid]; } } break;
+    case "col": var cp = P(+id); if (cp) {   // nächste Farbe, die noch niemand hat
+      var used = S.players.filter(function (o) { return o !== cp; }).map(function (o) { return pc(o.id); }), ci = PAL.indexOf(pc(cp.id));
+      for (var cs = 1; cs <= PAL.length; cs++) { var nc = PAL[(ci + cs) % PAL.length]; if (used.indexOf(nc) < 0 || cs === PAL.length) { cp.col = nc; break; } }
+    } break;
+    case "say": UI.say = !UI.say; UI.ann = {}; for (var sb = 0; sb < S.nb; sb++) UI.ann[sb] = S.board[sb] || null;
+      if (UI.say && window.speechSynthesis) speak(lang() === "en" ? "Announcements on." : "Ansagen an."); break;
+    case "share": shareImage(); return;
+    case "unboard": var mid = S.board[+bi]; S.board[+bi] = null; if (mid) { if (S.ts) delete S.ts[mid]; S.defer = S.defer || {}; S.defer[mid] = Date.now(); if (S.wr[mid] != null) { S.wc[S.wr[mid]]--; delete S.wr[mid]; } } break;
     case "tv": UI.tv = true; try { var rq = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (rq && rq.catch) rq.catch(function () {}); } catch (x) {} break;
     case "tvoff": UI.tv = false; try { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); if (location.hash === "#tv") history.replaceState(null, "", location.pathname + location.search); } catch (x) {} break;
     case "export":
@@ -1398,7 +1550,7 @@ root.addEventListener("change", function (e) {
 });
 root.addEventListener("submit", function (e) {
   var fb = e.target.closest("form.bet");
-  if (fb) { e.preventDefault(); placeBet(fb.getAttribute("data-id"), fb); dirty(); save(); render(); return; }
+  if (fb) { e.preventDefault(); placeBet(fb.getAttribute("data-id"), fb, e.submitter && e.submitter.getAttribute("data-stake")); dirty(); save(); render(); return; }
   var f = e.target.closest("form.edit"); if (!f) return;
   e.preventDefault();
   saveResult(f.getAttribute("data-id"), f);
