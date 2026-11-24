@@ -488,7 +488,7 @@ function stats() {
       s.sp++; s.lf += x[1]; s.la += x[2];
       if (x[1] > x[2]) s.w++; else if (x[1] < x[2]) s.l++; else s.d++;
       if (x[3] != null) { s.av.push(x[3]); s.mx = Math.max(s.mx, x[3]); }
-      s.t180 += x[4] || 0; s.hf = Math.max(s.hf, x[5] || 0);
+      s.t180 += x[4] || 0; if ((x[5] || 0) >= 100) s.hf = Math.max(s.hf, x[5]);
       if (x[6]) s.bl = s.bl ? Math.min(s.bl, x[6]) : x[6];
     });
   });
