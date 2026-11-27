@@ -66,7 +66,7 @@ var EN = {
   "Ergebnis speichern und Board freigeben": "Save result and free board",
   "Warteschlange": "Queue", "Alle Spiele gespielt.": "All matches played.", "spielt gerade": "playing",
   "Wartezeiten": "Waiting times", "Niemand wartet.": "Nobody is waiting.", "Am Board": "On the board",
-  "TV-Ansicht": "TV view", "TV-Ansicht beenden": "Exit TV view",
+  "TV-Ansicht": "TV view", "Vollbild": "Full screen", "TV-Ansicht beenden": "Exit TV view",
   "Nächste Spiele": "Next matches", "Top Average": "Top average",
   "Noch keine Averages.": "No averages yet.",
   "Mit Leave26 geplant. Checkouts sammeln, 180er zählen, mit Freunden vergleichen.": "Planned with Leave26. Collect checkouts, count your 180s, compare with friends.",
@@ -157,9 +157,9 @@ function fresh() {
 var S = fresh();
 try { var raw = localStorage.getItem(KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) {}
 if (!S.bet) S.bet = { on: false, all: false, max: 10 };
-function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function save() { if (UI.tvTab) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
-var UI = { edit: null, err: {}, pend: null, backup: "", imp: "", tv: location.hash === "#tv" };
+var UI = { edit: null, err: {}, pend: null, backup: "", imp: "", tv: location.hash === "#tv", tvTab: location.hash === "#tv" };   // tvTab: eigener Tab nur zum Anzeigen, schreibt nie
 
 /* ---------- Helfer ---------- */
 function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -1279,7 +1279,7 @@ function tvBets() {
 }
 function viewTv() {
   var h = '<div class="tvhead"><div class="big">🎯 ' + esc(S.name || (lang() === "en" ? "Darts tournament" : "Dartturnier")) + "</div>" + etaHtml() +
-    '<div class="row"><button class="b" data-do="say">' + (UI.say ? "🔊 " + t("Ansage an") : "🔇 " + t("Ansage aus")) + '</button><button class="b" data-do="tvoff">✕ ' + t("TV-Ansicht beenden") + "</button></div></div>";
+    '<div class="row"><button class="b" data-do="say">' + (UI.say ? "🔊 " + t("Ansage an") : "🔇 " + t("Ansage aus")) + '</button><button class="b" data-do="fs">⛶ ' + t("Vollbild") + '</button><button class="b" data-do="tvoff">✕ ' + t("TV-Ansicht beenden") + "</button></div></div>";
   if (!S.started) return h + startHint();
   var pod = podium();
   if (pod && pod[0] != null) h += '<div class="card champ">🏆 ' + t("Turniersieger") + "<b>" + esc(nm(pod[0])) + "</b></div>";
@@ -1618,8 +1618,8 @@ function render() {
   if (h1) h1.textContent = t("Turnier-Planer");
   if (intro) { intro.textContent = t("Plane dein lokales Dartturnier kostenlos: Teilnehmer eintragen, auslosen, Spiele auf die Boards verteilen und alles live auf dem TV zeigen. Alles bleibt in deinem Browser gespeichert."); intro.hidden = !!S.started; }
   var nav = document.getElementById("tp-nav"), view = document.getElementById("tp-view");
-  announce();   // Ansage läuft weiter, auch wenn man kurz aus der TV-Ansicht raus ist
-  liveListen(); livePush();
+  if (UI.tv) announce();   // Ansage nur im TV-Tab, sonst spricht es doppelt
+  if (!UI.tvTab) { liveListen(); livePush(); }
   if (UI.tv) { nav.innerHTML = ""; view.innerHTML = viewTv(); fitTv(); return; }
   root.style.zoom = "";
   var tabs = TABS.filter(function (x) { return !(x[0] === "w" && !(S.bet && S.bet.on)) && !(x[0] === "k" && (S.fmt === "league" || (S.fmt === "swiss" && S.sko < 2))); });
@@ -1686,8 +1686,14 @@ root.addEventListener("click", function (e) {
       if (navigator.share) { navigator.share({ title: S.name || "Schluck-Wetten", text: lt, url: lu }).catch(function () {}); return; }
       try { navigator.clipboard.writeText(lu); UI.liveMsg = t("Link kopiert."); } catch (x) {} break;
     case "unboard": var mid = S.board[+bi]; S.board[+bi] = null; if (mid) { if (S.ts) delete S.ts[mid]; S.defer = S.defer || {}; S.defer[mid] = Date.now(); if (S.wr[mid] != null) { S.wc[S.wr[mid]]--; delete S.wr[mid]; } } break;
-    case "tv": UI.tv = true; try { var rq = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (rq && rq.catch) rq.catch(function () {}); } catch (x) {} break;
-    case "tvoff": UI.tv = false; try { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); if (location.hash === "#tv") history.replaceState(null, "", location.pathname + location.search); } catch (x) {} break;
+    case "tv":
+      // TV-Ansicht in eigenem Tab, damit man daneben weiter Ergebnisse eintragen kann
+      try { var tw = window.open(location.pathname + location.search + "#tv", "l26-tv"); if (tw) { tw.focus(); return; } } catch (x) {}
+      UI.tv = true; try { var rq = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (rq && rq.catch) rq.catch(function () {}); } catch (x) {} break;
+    case "fs": try { var rf = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (rf && rf.catch) rf.catch(function () {}); } catch (x) {} return;
+    case "tvoff":
+      if (UI.tvTab) { try { window.close(); } catch (x) {} if (window.closed) return; UI.tvTab = false; }
+      UI.tv = false; try { if (document.fullscreenElement) document.exitFullscreen().catch(function () {}); if (location.hash === "#tv") history.replaceState(null, "", location.pathname + location.search); } catch (x) {} break;
     case "export":
       UI.backup = JSON.stringify(S);
       try { var bl = new Blob([UI.backup], { type: "application/json" }), u = URL.createObjectURL(bl), a = document.createElement("a"); a.href = u; a.download = "leave26-turnier-" + new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-") + ".json"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 1000); } catch (x) {}

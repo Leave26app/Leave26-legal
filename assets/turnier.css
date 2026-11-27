@@ -127,3 +127,4 @@ body.tv #tp .promo{display:none}
 #tp .stakes .b{min-height:44px}
 #tp details.gx .chips{grid-template-columns:repeat(auto-fill,minmax(88px,1fr))}
 body.guest #tp .promo{margin-top:24px}
+html:fullscreen [data-do="fs"]{display:none}
